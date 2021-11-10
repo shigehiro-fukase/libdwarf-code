@@ -50,6 +50,7 @@
 #include <io.h>
 #include <basetsd.h>
 /*  Should we have include <windows.h> instead? */
+#include <stdio.h> // SEEK_CUR and SEEK_SET for Visual Studio 2017
 typedef SSIZE_T ssize_t; /* MSVC does not have POSIX ssize_t */
 #endif /* HAVE_UNISTD_H */
 
