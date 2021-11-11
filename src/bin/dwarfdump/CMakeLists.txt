@@ -27,7 +27,7 @@ set_source_group(SOURCES "Source Files" addrmap.c
 	sanitized.c section_bitmaps.c strstrnocase.c 
     true_section_name.c uri.c dwgetopt.c makename.c 
     naming.c common.c esb.c dwarf_tsearchbal.c
-    ./external/parson/parson.c
+    external/parson/parson.c
     )
 	
 set_source_group(HEADERS "Header Files" 
@@ -44,7 +44,7 @@ set_source_group(HEADERS "Header Files"
   makename.h dwarf_tsearch.h print_frames.h 
   section_bitmaps.h uri.h
   ../../lib/libdwarf/libdwarf_private.h
-  ./external/parson/parson.h
+  external/parson/parson.h
   )
 
 set_source_group(CONFIGURATION_FILES "Configuration Files"
@@ -55,6 +55,8 @@ add_executable(dwarfdump ${SOURCES} ${HEADERS} ${CONFIGURATION_FILES})
 
 set_folder(dwarfdump src/bin/dwarfdump)
 
+target_include_directories(dwarfdump PRIVATE
+    external/parson)
 
 target_compile_definitions(dwarfdump PRIVATE 
     "CONFPREFIX=${CMAKE_INSTALL_PREFIX}/lib")
