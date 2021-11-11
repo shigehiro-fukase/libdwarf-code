@@ -331,6 +331,9 @@ init_global_flags(void)
 
     /*  Check errors. */
     glflags.check_error = 0;
+
+    /* Output formatted file */
+    glflags.output_json = 0;
 }
 
 void
