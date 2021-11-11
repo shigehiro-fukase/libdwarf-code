@@ -414,6 +414,8 @@ static void arg_search_print_children(void);
 static void arg_search_print_parent(void);
 static void arg_search_print_tree(void);
 
+static void arg_output_json(void);
+
 static void arg_help(void);
 static void arg_trace(void);
 static void arg_verbose(void);
@@ -673,6 +675,10 @@ static const char *usage_long_text[] = {
 "                             (wide format) with -S",
 " ",
 "-------------------------------------------------------------------",
+" Output formatted file",
+"-------------------------------------------------------------------",
+"--output-json=<path>         Name the output JSON file",
+"-------------------------------------------------------------------",
 "Help & Version",
 "-------------------------------------------------------------------",
 "-h   --help          Print this dwarfdump help message.",
@@ -814,6 +820,9 @@ OPT_SEARCH_PRINT_TREE,        /* -W  --search-print-tree  */
 OPT_SEARCH_REGEX,       /* -S regex=<text> --search-regex=<text> */
 OPT_SEARCH_REGEX_COUNT,
     /* -Svregex=<text> --search-regex-count<text>*/
+
+/* Output formatted file */
+OPT_OUTPUT_JSON,              /* --output-json=<path> */
 
 /* Help & Version                                            */
 OPT_HELP,                     /* -h  --help                  */
@@ -972,6 +981,9 @@ OPT_FORMAT_SUPPRESS_OFFSETS },
 {"search-regex",          dwrequired_argument, 0, OPT_SEARCH_REGEX },
 {"search-regex-count",    dwrequired_argument, 0,
     OPT_SEARCH_REGEX_COUNT   },
+
+/* Output formatted file */
+{"output-json",           dwrequired_argument, 0, OPT_OUTPUT_JSON },
 
 /* Help & Version. */
 {"help",          dwno_argument, 0, OPT_HELP         },
@@ -2427,6 +2439,18 @@ static void arg_x_invalid(void)
     glflags.gf_count_major_errors++;
 }
 
+/* '--output-json=<path>' option. */
+static void arg_output_json(void)
+{
+    const char *ctx = "--output-json=";
+    const char *path = do_uri_translation(dwoptarg,ctx);
+    if (strlen(path) > 0) {
+        glflags.output_json = path;
+    } else {
+        arg_usage_error = TRUE;
+    }
+}
+
 /*  Process the command line arguments and set the
     appropriate options. All
     the options are within the global flags structure. */
@@ -2629,6 +2653,9 @@ set_command_options(int argc, char *argv[])
         case OPT_SEARCH_REGEX:          arg_search_regex();break;
         case OPT_SEARCH_REGEX_COUNT:    arg_search_regex_count();
             break;
+
+        /* Output formatted file */
+        case OPT_OUTPUT_JSON: arg_output_json(); break;
 
         /* Help & Version. */
         case OPT_HELP:          arg_help();          break;
