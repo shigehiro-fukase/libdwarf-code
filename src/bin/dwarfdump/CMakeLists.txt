@@ -28,7 +28,9 @@ set_source_group(SOURCES "Source Files" dd_addrmap.c
     dd_sanitized.c dd_strstrnocase.c
     dd_true_section_name.c dd_uri.c dd_utf8.c
     dd_getopt.c dd_makename.c
-    dd_naming.c dd_esb.c dd_tsearchbal.c)
+    dd_naming.c dd_esb.c dd_tsearchbal.c
+    ./external/parson/parson.c
+    )
 	
 set_source_group(HEADERS "Header Files"
   dd_addrmap.h dd_attr_form.h dd_checkutil.h dd_common.h dd_regex.h
@@ -51,7 +53,9 @@ set_source_group(HEADERS "Header Files"
   dd_sanitized.h
   dd_naming.h dd_makename.h dd_tsearchbal.h print_frames.h
   dd_uri.h dd_utf8.h
-  ../../lib/libdwarf/libdwarf_private.h)
+  ../../lib/libdwarf/libdwarf_private.h
+  ./external/parson/parson.h
+  )
 
 set_source_group(CONFIGURATION_FILES "Configuration Files"
   ${PROJECT_SOURCE_DIR}/cmake/config.h.in
