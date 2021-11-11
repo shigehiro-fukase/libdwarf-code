@@ -386,6 +386,9 @@ struct glflags_s {
     int check_error;
 
     int gf_print_alloc_sums;
+
+    /* Output formatted file */
+    const char *output_json;
 };
 
 extern struct glflags_s glflags;

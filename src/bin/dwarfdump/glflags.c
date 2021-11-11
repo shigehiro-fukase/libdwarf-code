@@ -341,6 +341,9 @@ init_global_flags(void)
     glflags.check_error = 0;
 
     glflags.gf_print_alloc_sums = 0;
+
+    /* Output formatted file */
+    glflags.output_json = 0;
 }
 
 void
