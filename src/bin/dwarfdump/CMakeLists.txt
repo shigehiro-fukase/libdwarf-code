@@ -26,7 +26,9 @@ set_source_group(SOURCES "Source Files" addrmap.c
     print_weaknames.c  
 	sanitized.c section_bitmaps.c strstrnocase.c 
     true_section_name.c uri.c dwgetopt.c makename.c 
-    naming.c common.c esb.c dwarf_tsearchbal.c)
+    naming.c common.c esb.c dwarf_tsearchbal.c
+    ./external/parson/parson.c
+    )
 	
 set_source_group(HEADERS "Header Files" 
   addrmap.h attr_form.h checkutil.h common.h dwconf.h
@@ -41,7 +43,9 @@ set_source_group(HEADERS "Header Files"
   dwgetopt.h esb.h glflags.h globals.h macrocheck.h defined_types.h
   makename.h dwarf_tsearch.h print_frames.h 
   print_reloc.h print_reloc_decls.h section_bitmaps.h uri.h
-  ../../lib/libdwarf/libdwarf_private.h)
+  ../../lib/libdwarf/libdwarf_private.h
+  ./external/parson/parson.h
+  )
 
 set_source_group(CONFIGURATION_FILES "Configuration Files"
   ${CMAKE_SOURCE_DIR}/cmake/config.h.cmake
