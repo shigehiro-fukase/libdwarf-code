@@ -387,6 +387,9 @@ struct glflags_s {
 
     /*  Check errors. */
     int check_error;
+
+    /* Output formatted file */
+    const char *output_json;
 };
 
 extern struct glflags_s glflags;
