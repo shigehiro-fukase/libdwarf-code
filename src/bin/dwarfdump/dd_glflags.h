@@ -394,6 +394,7 @@ struct glflags_s {
 
     /* Output formatted file */
     const char *output_json;
+    void * json_root_value; /* 'parson' JSON parser library `JSON_Value*` */
 };
 
 extern struct glflags_s glflags;
