@@ -508,6 +508,14 @@ print_abbrevs(Dwarf_Debug dbg,Dwarf_Error* paerr)
     Dwarf_Unsigned abbrev_num = 1;
     Dwarf_Unsigned abbrev_num_ret = 1;
 
+    JSON_Value *json_sec_val = NULL;
+    JSON_Object *json_sec_obj = NULL;
+
+    if (glflags.output_json) {
+        json_sec_val = json_value_init_object();
+        json_sec_obj = json_value_get_object(json_sec_val);
+    }
+
     glflags.current_section_id = DEBUG_ABBREV;
     /* Doing this just to print the section name */
     abres = dwarf_get_abbrev(dbg, offset, &ab,
@@ -517,7 +525,7 @@ print_abbrevs(Dwarf_Debug dbg,Dwarf_Error* paerr)
             so the section is loaded and uncompressed
             if necessary. We get information printed
             about the compression (if any) this way. */
-        print_secname(dbg,".debug_abbrev");
+        print_secname(dbg,".debug_abbrev",json_sec_obj);
     }
     if (abres == DW_DLV_OK) {
         /* discard what we got. */
@@ -535,16 +543,24 @@ print_abbrevs(Dwarf_Debug dbg,Dwarf_Error* paerr)
             abbrev_num,&length,&abbrev_num_ret,paerr);
         if (tres == DW_DLV_NO_ENTRY) {
             if (loopct > 0) {
-                return DW_DLV_OK;
+                tres = DW_DLV_OK;
+                break;
             }
-            return DW_DLV_NO_ENTRY;
+            tres = DW_DLV_NO_ENTRY;
+            break;
         }
         if (tres == DW_DLV_ERROR) {
-            return tres;
+            break;
         }
         offset = offset+length;
         abbrev_num = abbrev_num_ret;
     }
+
+    if (glflags.output_json) {
+        json_add_section(json_sec_val);
+    }
+
+    return tres;
 }
 
 /*  Abbreviations array info for checking  abbrev tags.

@@ -394,6 +394,10 @@ main(int argc, char *argv[])
         print_args(argc,argv);
     }
 
+    if (glflags.output_json) {
+        json_init(NULL);
+    }
+
     /*  Allow the user to hide some warnings by using
         command line options */
     {
@@ -617,6 +621,11 @@ main(int argc, char *argv[])
     temp_path_buf = 0;
     temp_path_buf_len = 0;
     /* ======= END PROCESSING OBJECT FILES BY TYPE ===== */
+
+    if (glflags.output_json) {
+        json_dump(NULL);
+        json_term(NULL);
+    }
 
     /*  These cleanups only necessary once all
         objects processed. */
@@ -2029,7 +2038,8 @@ get_producer_name(Dwarf_Debug dbg, Dwarf_Die cu_die,
 }
 
 void
-print_secname(Dwarf_Debug dbg,const char *secname)
+print_secname(Dwarf_Debug dbg,const char *secname,
+    JSON_Object *json_sec_obj)
 {
     if (glflags.gf_do_print_dwarf) {
         struct esb_s truename;
@@ -2060,6 +2070,9 @@ print_gnu_debuglink(Dwarf_Debug dbg, Dwarf_Error *error)
     char      **paths_array = 0;
     unsigned    paths_array_length = 0;
 
+    JSON_Value *json_sec_val = NULL;
+    JSON_Object *json_sec_obj = NULL;
+
     res = dwarf_gnu_debuglink(dbg,
         &name,
         &crcbytes,
@@ -2075,11 +2088,22 @@ print_gnu_debuglink(Dwarf_Debug dbg, Dwarf_Error *error)
         return res;
     }
     if (res == DW_DLV_ERROR) {
-        print_secname(dbg,".gnu_debuglink");
+        if (glflags.output_json) {
+            json_sec_val = json_value_init_object();
+            json_sec_obj = json_value_get_object(json_sec_val);
+        }
+        print_secname(dbg,".gnu_debuglink",json_sec_obj);
+        if (glflags.output_json) {
+            json_add_section(json_sec_val);
+        }
         return res;
     }
     if (crcbytes) {
-        print_secname(dbg,".gnu_debuglink");
+        if (glflags.output_json) {
+            json_sec_val = json_value_init_object();
+            json_sec_obj = json_value_get_object(json_sec_val);
+        }
+        print_secname(dbg,".gnu_debuglink",json_sec_obj);
         /* Done with error checking, so print if we are printing. */
         if (glflags.gf_do_print_dwarf)  {
             printf(" Debuglink name  : %s",sanitized(name));
@@ -2100,9 +2124,16 @@ print_gnu_debuglink(Dwarf_Debug dbg, Dwarf_Error *error)
                     sanitized(link_path));
             }
         }
+        if (glflags.output_json) {
+            json_add_section(json_sec_val);
+        }
     }
     if (buildidlength) {
-        print_secname(dbg,".note.gnu.build-id");
+        if (glflags.output_json) {
+            json_sec_val = json_value_init_object();
+            json_sec_obj = json_value_get_object(json_sec_val);
+        }
+        print_secname(dbg,".note.gnu.build-id",json_sec_obj);
         if (glflags.gf_do_print_dwarf)  {
             printf(" Build-id  type     : %u\n", buildidtype);
             printf(" Build-id  ownername: %s\n",
@@ -2120,6 +2151,9 @@ print_gnu_debuglink(Dwarf_Debug dbg, Dwarf_Error *error)
                 }
             }
             printf("\n");
+        }
+        if (glflags.output_json) {
+            json_add_section(json_sec_val);
         }
     }
     if (paths_array_length) {
