@@ -163,8 +163,8 @@ aranges_dealloc_now(Dwarf_Debug dbg,
 }
 
 /* get all the data in .debug_aranges */
-int
-print_aranges(Dwarf_Debug dbg,Dwarf_Error *ga_err)
+static int
+_print_aranges(Dwarf_Debug dbg,Dwarf_Error *ga_err,JSON_Object *json_sec_obj)
 {
     Dwarf_Signed count = 0;
     Dwarf_Signed i = 0;
@@ -192,6 +192,12 @@ print_aranges(Dwarf_Debug dbg,Dwarf_Error *ga_err)
         get_true_section_name(dbg,".debug_aranges",
             &truename,TRUE);
         printf("\n%s\n",sanitized(esb_get_string(&truename)));
+
+        if (glflags.output_json) {
+            json_object_set_string(json_sec_obj, JSON_NODE_SECNAME,
+                    sanitized(esb_get_string(&truename)));
+        }
+
         esb_destructor(&truename);
     }
     if (ares == DW_DLV_ERROR) {
@@ -368,7 +374,8 @@ print_aranges(Dwarf_Debug dbg,Dwarf_Error *ga_err)
                                 /* cnt= */ 0,
                                 &attr_duplicated,
                                 /* ignore_die_stack= */TRUE,
-                                ga_err);
+                                ga_err,
+                                json_sec_obj);
                             if (pres == DW_DLV_ERROR) {
                                 dwarf_dealloc(dbg,cu_die,DW_DLA_DIE);
                                 aranges_dealloc_now(dbg,
@@ -430,4 +437,22 @@ print_aranges(Dwarf_Debug dbg,Dwarf_Error *ga_err)
         arange_buf = 0;
     } /* end DW_DLV_OK */
     return DW_DLV_OK;
+}
+int
+print_aranges(Dwarf_Debug dbg,Dwarf_Error *ga_err)
+{
+    int ret;
+    JSON_Value *json_sec_val = NULL;
+    JSON_Object *json_sec_obj = NULL;
+
+    if (glflags.output_json) {
+        json_sec_val = json_value_init_object();
+        json_sec_obj = json_value_get_object(json_sec_val);
+    }
+
+    ret = _print_aranges(dbg,ga_err,json_sec_obj);
+
+    if (glflags.output_json) {
+        json_add_section(json_sec_val);
+    }
 }
