@@ -682,7 +682,8 @@ print_macro_ops(Dwarf_Debug dbg,
     Dwarf_Unsigned macro_unit_offset /* of this set*/,
     Dwarf_Unsigned *macro_unit_length /* return val */,
     int level,
-    Dwarf_Error *err)
+    Dwarf_Error *err,
+    JSON_Object *json_sec_obj)
 {
     unsigned k = 0;
 
@@ -1019,8 +1020,9 @@ print_macro_ops(Dwarf_Debug dbg,
                     mac_e->ms_line,
                     macfile_array_next_to_use-1,
                     level+1,
-                    err);
-                if (mres == DW_DLV_ERROR) {
+                    err,
+                    json_sec_obj);
+				if (mres == DW_DLV_ERROR) {
                     struct esb_s m;
 
                     esb_constructor(&m);
@@ -1082,7 +1084,8 @@ print_macros_5style_this_cu_inner(Dwarf_Debug dbg, Dwarf_Die cu_die,
     Dwarf_Unsigned lineno,
     unsigned filenum,
     int level,
-    Dwarf_Error *err)
+    Dwarf_Error *err,
+    JSON_Object *json_sec_obj)
 {
     int lres = 0;
     Dwarf_Unsigned version = 0;
@@ -1196,7 +1199,8 @@ print_macros_5style_this_cu_inner(Dwarf_Debug dbg, Dwarf_Die cu_die,
             /* indent level */0,
             dwarf_srcfiles,srcfiles_count,
             &attr_dup,
-            /* ignore_die_stack= */TRUE,err);
+            /* ignore_die_stack= */TRUE,err,
+            json_sec_obj);
         if (pdres == DW_DLV_ERROR) {
             dwarf_dealloc_macro_context(macro_context);
             return pdres;
@@ -1361,7 +1365,8 @@ print_macros_5style_this_cu_inner(Dwarf_Debug dbg, Dwarf_Die cu_die,
             macro_unit_offset,
             &macro_unit_length,
             level,
-            err);
+            err,
+            json_sec_obj);
         if (lres != DW_DLV_OK) {
             struct esb_s m;
 
@@ -1429,7 +1434,8 @@ print_macros_5style_this_cu(Dwarf_Debug dbg, Dwarf_Die cu_die,
     int by_offset ,
 
     Dwarf_Unsigned offset,
-    Dwarf_Error *err)
+    Dwarf_Error *err,
+    JSON_Object *json_sec_obj)
 {
     int res = 0;
 
@@ -1453,7 +1459,8 @@ print_macros_5style_this_cu(Dwarf_Debug dbg, Dwarf_Die cu_die,
         offset,
         0,0,
         0,
-        err);
+        err,
+        json_sec_obj);
     macdef_tree_run_checks();
     destroy_macro_globals();
 
