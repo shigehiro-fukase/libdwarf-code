@@ -28,6 +28,7 @@ set_source_group(SOURCES "Source Files" addrmap.c
     true_section_name.c uri.c dwgetopt.c makename.c 
     naming.c common.c esb.c dwarf_tsearchbal.c
     external/parson/parson.c
+    output_json.c
     )
 	
 set_source_group(HEADERS "Header Files" 
@@ -45,6 +46,7 @@ set_source_group(HEADERS "Header Files"
   section_bitmaps.h uri.h
   ../../lib/libdwarf/libdwarf_private.h
   external/parson/parson.h
+  output_json.h
   )
 
 set_source_group(CONFIGURATION_FILES "Configuration Files"
