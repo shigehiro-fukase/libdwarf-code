@@ -66,6 +66,14 @@ print_locs(Dwarf_Debug dbg, Dwarf_Error *err)
     unsigned loopct = 0;
     struct esb_s secname;
 
+    JSON_Value *json_sec_val = NULL;
+    JSON_Object *json_sec_obj = NULL;
+
+    if (glflags.output_json) {
+        json_sec_val = json_value_init_object();
+        json_sec_obj = json_value_get_object(json_sec_val);
+    }
+
     glflags.current_section_id = DEBUG_LOC;
     /* Do nothing if not printing. */
     if (!glflags.gf_do_print_dwarf) {
@@ -134,7 +142,7 @@ print_locs(Dwarf_Debug dbg, Dwarf_Error *err)
 
         /* Display offsets */
         if (!loopct) {
-            print_secname(dbg,esb_get_string(&secname));
+            print_secname(dbg,esb_get_string(&secname),json_sec_obj);
         }
         if (glflags.gf_display_offsets) {
             ++index;
@@ -156,7 +164,10 @@ print_locs(Dwarf_Debug dbg, Dwarf_Error *err)
     }
     if (!loopct) {
         /* Nothing happened, so announce the section name anyway */
-        print_secname(dbg,esb_get_string(&secname));
+        print_secname(dbg,esb_get_string(&secname),json_sec_obj);
+    }
+    if (glflags.output_json) {
+        json_add_section(json_sec_val);
     }
     esb_destructor(&exprstring);
     esb_destructor(&secname);
