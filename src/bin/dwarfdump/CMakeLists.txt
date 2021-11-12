@@ -30,6 +30,7 @@ set_source_group(SOURCES "Source Files" dd_addrmap.c
     dd_getopt.c dd_makename.c
     dd_naming.c dd_esb.c dd_tsearchbal.c
     external/parson/parson.c
+    output_json.c
     )
 	
 set_source_group(HEADERS "Header Files"
@@ -55,6 +56,7 @@ set_source_group(HEADERS "Header Files"
   dd_uri.h dd_utf8.h
   ../../lib/libdwarf/libdwarf_private.h
   external/parson/parson.h
+  output_json.h
   )
 
 set_source_group(CONFIGURATION_FILES "Configuration Files"
