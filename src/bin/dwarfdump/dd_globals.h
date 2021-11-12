@@ -35,6 +35,7 @@ extern "C" {
 #include "dd_defined_types.h"
 #include "dd_checkutil.h"
 #include "dd_glflags.h"
+#include "output_json.h"
 
 #define DWARF_SECNAME_BUFFER_SIZE 50
 #define ESB_FIXED_ALLOC_SIZE 300
@@ -121,7 +122,8 @@ extern int print_line_numbers_this_cu (Dwarf_Debug dbg,
     Dwarf_Die in_die,
     char **srcfiles,
     Dwarf_Signed cnt,
-    Dwarf_Error *err);
+    Dwarf_Error *err,
+    JSON_Object *json_sec_obj);
 
 extern int print_frames (Dwarf_Debug dbg,int want_eh,
     struct dwconf_s *,
@@ -198,7 +200,8 @@ extern int print_one_die(
     Dwarf_Signed cnt,
     Dwarf_Bool *an_attr_duplicated,
     Dwarf_Bool ignore_die_stack,
-    Dwarf_Error *err);
+    Dwarf_Error *err,
+    JSON_Object *json_sec_obj);
 
 /* Check for specific compiler */
 extern Dwarf_Bool checking_this_compiler(void);
@@ -248,7 +251,8 @@ int print_macros_5style_this_cu(Dwarf_Debug dbg, Dwarf_Die cu_die,
     int descend_into_imports /* TRUE means follow imports */,
     Dwarf_Bool in_import_list /* helps make print readable */,
     Dwarf_Unsigned offset,
-    Dwarf_Error *);
+    Dwarf_Error *,
+    JSON_Object *);
 
 /* Detailed attributes encoding space */
 int print_attributes_encoding(Dwarf_Debug dbg,Dwarf_Error *);
@@ -271,7 +275,8 @@ int print_str_offsets_section(Dwarf_Debug dbg,Dwarf_Error *);
 
 void print_any_harmless_errors(Dwarf_Debug dbg);
 
-void print_secname(Dwarf_Debug dbg,const char *secname);
+void print_secname(Dwarf_Debug dbg,const char *secname,
+    JSON_Object *json_sec_obj);
 
 void  report_caller_error_drop_error(int dwdlv,
     int line, char *filename);
