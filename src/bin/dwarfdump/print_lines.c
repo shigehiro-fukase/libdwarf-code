@@ -848,7 +848,8 @@ int
 print_line_numbers_this_cu(Dwarf_Debug dbg, Dwarf_Die cu_die,
     char **srcfiles,
     Dwarf_Signed srcf_count,
-    Dwarf_Error *err)
+    Dwarf_Error *err,
+    JSON_Object *json_sec_obj)
 {
     Dwarf_Unsigned lineversion = 0;
     Dwarf_Signed linecount = 0;
@@ -889,6 +890,10 @@ print_line_numbers_this_cu(Dwarf_Debug dbg, Dwarf_Die cu_die,
             &truename,FALSE); /* Ignore the COMPRESSED flags */
         printf("\n%s: line number info for a single cu\n",
             sanitized(esb_get_string(&truename)));
+        if (glflags.output_json) {
+            json_object_set_string(json_sec_obj, JSON_NODE_SECNAME,
+                    sanitized(esb_get_string(&truename)));
+        }
         esb_destructor(&truename);
     } else {
         /* We are checking, not printing. */
@@ -927,7 +932,8 @@ print_line_numbers_this_cu(Dwarf_Debug dbg, Dwarf_Die cu_die,
             srcfiles,srcf_count,
             &attr_dup,
             /* ignore_die_stack= */TRUE,
-            err);
+            err,
+            json_sec_obj);
         if (lresv == DW_DLV_ERROR) {
             return lresv;
         }
@@ -1035,7 +1041,8 @@ print_line_numbers_this_cu(Dwarf_Debug dbg, Dwarf_Die cu_die,
                     /* srcfiles= */ 0, /* cnt= */ 0,
 
                     &attr_dup,
-                    /* ignore_die_stack= */TRUE,err);
+                    /* ignore_die_stack= */TRUE,err,
+                    json_sec_obj);
                 if (dres == DW_DLV_ERROR) {
                     dwarf_srclines_dealloc_b(line_context);
                     return dres;
@@ -1107,7 +1114,8 @@ print_line_numbers_this_cu(Dwarf_Debug dbg, Dwarf_Die cu_die,
                     /* srcfiles= */ 0, /* cnt= */ 0,
                     &attr_dup,
                     /* ignore_die_stack= */TRUE,
-                    err);
+                    err,
+                    json_sec_obj);
                 if (dpres == DW_DLV_ERROR) {
                     dwarf_srclines_dealloc_b(line_context);
                     return dpres;
