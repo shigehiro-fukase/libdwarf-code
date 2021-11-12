@@ -86,10 +86,12 @@ static int print_die_and_children_internal(Dwarf_Debug dbg,
     Dwarf_Off dieprint_cu_goffset,
     Dwarf_Bool is_info,
     char **srcfiles, Dwarf_Signed srcfiles_cnt,
-    Dwarf_Error *);
+    Dwarf_Error *,
+    JSON_Object *json_sec_obj);
 static int print_one_die_section(Dwarf_Debug dbg,
     Dwarf_Bool is_info,
-    Dwarf_Error *pod_err);
+    Dwarf_Error *pod_err,
+    JSON_Object *json_sec_obj);
 static int handle_rnglists(Dwarf_Attribute attrib,
     Dwarf_Half theform,
     Dwarf_Unsigned value,
@@ -125,7 +127,8 @@ static int print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
     char **srcfiles, Dwarf_Signed srcfcnt,
     LoHiPc *lohipc,
     Dwarf_Bool *attr_matched,
-    Dwarf_Error *err);
+    Dwarf_Error *err,
+    JSON_Array *json_attr_arr);
 static int print_location_list(Dwarf_Debug dbg,
     Dwarf_Die die,
     Dwarf_Attribute attr,
@@ -631,7 +634,21 @@ print_infos(Dwarf_Debug dbg,Dwarf_Bool is_info,
     Dwarf_Error *pi_err)
 {
     int nres = 0;
-    nres = print_one_die_section(dbg,is_info,pi_err);
+    JSON_Value *json_sec_val = NULL;
+    JSON_Object *json_sec_obj = NULL;
+
+    if (glflags.output_json) {
+        json_sec_val = json_value_init_object();
+        json_sec_obj = json_value_get_object(json_sec_val);
+        json_object_set_empty_array(json_sec_obj, JSON_NODE_DIE);
+    }
+
+    nres = print_one_die_section(dbg,is_info,pi_err,json_sec_obj);
+
+    if (glflags.output_json) {
+        json_add_section(json_sec_val);
+    }
+
     return nres;
 }
 
@@ -685,7 +702,8 @@ static void
 print_cu_hdr_cudie(Dwarf_Debug dbg UNUSEDARG,
     Dwarf_Die cudie UNUSEDARG,
     Dwarf_Unsigned overall_offset,
-    Dwarf_Unsigned offset )
+    Dwarf_Unsigned offset,
+    JSON_Object *json_obj)
 {
     struct Dwarf_Debug_Fission_Per_CU_s fission_data;
 
@@ -698,6 +716,12 @@ print_cu_hdr_cudie(Dwarf_Debug dbg UNUSEDARG,
         DW_PR_XZEROS DW_PR_DUx ">",
         (Dwarf_Unsigned)(overall_offset - offset));
     printf(":\n");
+
+    if (glflags.output_json) {
+        json_object_dotset_number(json_obj,
+                JSON_NODE_COMPILE_UNIT ".header_overall_offset",
+                (Dwarf_Unsigned)(overall_offset - offset));
+    }
 }
 
 
@@ -854,7 +878,7 @@ get_macinfo_offset(Dwarf_Debug dbg,
 }
 
 static void
-print_die_secname(Dwarf_Debug dbg,int is_info)
+print_die_secname(Dwarf_Debug dbg,int is_info, JSON_Object *json_sec_obj)
 {
     if (print_as_info_or_by_cuname() &&
         glflags.gf_do_print_dwarf) {
@@ -871,6 +895,10 @@ print_die_secname(Dwarf_Debug dbg,int is_info)
         get_true_section_name(dbg,section_name,
             &truename,TRUE);
         printf("\n%s\n",sanitized(esb_get_string(&truename)));
+        if (glflags.output_json) {
+            json_object_set_string(json_sec_obj, JSON_NODE_SECNAME,
+                    sanitized(esb_get_string(&truename)));
+        }
         esb_destructor(&truename);
     }
 }
@@ -934,14 +962,15 @@ print_die_and_children(Dwarf_Debug dbg,
     Dwarf_Off dieprint_cu_goffset,
     Dwarf_Bool is_info,
     char **srcfiles, Dwarf_Signed srcfiles_cnt,
-    Dwarf_Error *err)
+    Dwarf_Error *err,
+    JSON_Object *json_sec_obj)
 {
     int res = 0;
 
     local_symbols_already_began = FALSE;
     res  =print_die_and_children_internal(dbg,
         in_die_in, dieprint_cu_goffset,
-        is_info,srcfiles,srcfiles_cnt,err);
+        is_info,srcfiles,srcfiles_cnt,err,json_sec_obj);
     return res;
 }
 
@@ -971,7 +1000,8 @@ print_cu_hdr_abbrev_data(Dwarf_Debug dbg,
 /*   */
 static int
 print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
-    Dwarf_Error *pod_err)
+    Dwarf_Error *pod_err,
+    JSON_Object *json_sec_obj)
 {
     Dwarf_Unsigned cu_header_length = 0;
     Dwarf_Unsigned abbrev_offset = 0;
@@ -1031,7 +1061,7 @@ print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
         if (!loop_count) {
             /*  So compress flags show, we waited till
                 section loaded to do this. */
-            print_die_secname(dbg,is_info);
+            print_die_secname(dbg,is_info,json_sec_obj);
         }
         if (nres == DW_DLV_NO_ENTRY) {
             return nres;
@@ -1270,7 +1300,7 @@ print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
                     dieprint_cu_goffset = glflags.DIE_overall_offset;
                     pres = print_die_and_children(dbg, cu_die2,
                         dieprint_cu_goffset,is_info,
-                            srcfiles, srcfiles_cnt,pod_err);
+                            srcfiles, srcfiles_cnt,pod_err,json_sec_obj);
                     if (pres == DW_DLV_ERROR) {
                         if (srcfiles) {
                             dealloc_all_srcfiles(dbg,srcfiles,
@@ -1310,9 +1340,18 @@ print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
                     int plnres = 0;
 
                     int oldsection = glflags.current_section_id;
+
+                    JSON_Value *json_line_sec_val = NULL;
+                    JSON_Object *json_line_sec_obj = NULL;
+
+                    if (glflags.output_json) {
+                        json_line_sec_val = json_value_init_object();
+                        json_line_sec_obj = json_value_get_object(json_line_sec_val);
+                    }
+
                     plnres = print_line_numbers_this_cu(dbg,
                         cu_die2,
-                        srcfiles,srcfiles_cnt,pod_err);
+                        srcfiles,srcfiles_cnt,pod_err,json_line_sec_obj);
                     if (plnres == DW_DLV_ERROR) {
                         print_error_and_continue(dbg,
                             "ERROR: Printing line numbers for "
@@ -1322,6 +1361,11 @@ print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
                             whatever we can */
                         DROP_ERROR_INSTANCE(dbg,plnres,*pod_err);
                     }
+
+                    if (glflags.output_json) {
+                        json_add_section(json_line_sec_val);
+                    }
+
                     glflags.current_section_id = oldsection;
                 }
                 if (glflags.gf_macro_flag ||
@@ -1341,7 +1385,7 @@ print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
                         glflags.gf_do_print_dwarf,
                         TRUE /* descend_into_imports */,
                         in_import_list,
-                        import_offset,pod_err);
+                        import_offset,pod_err,json_sec_obj);
                     if (mres == DW_DLV_ERROR) {
                         print_error_and_continue(dbg,
                             "ERROR: Printing DWARF5 macros "
@@ -1373,7 +1417,7 @@ print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
                                 FALSE /* no descend_into_imports */,
                                 in_import_list,
                                 import_offset,
-                                pod_err);
+                                pod_err,json_sec_obj);
                             if (mres == DW_DLV_ERROR) {
                                 struct esb_s m;
 
@@ -1439,6 +1483,7 @@ print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
             cu_die2 = 0;
             ++cu_count;
         } /*  End loop on loop_count */
+
         return nres;
     }
 
@@ -1447,7 +1492,8 @@ print_a_die_stack(Dwarf_Debug dbg,
     char **srcfiles,
     Dwarf_Signed srcfiles_cnt,
     int lev,
-    Dwarf_Error *err)
+    Dwarf_Error *err,
+    JSON_Object *json_sec_obj)
 {
     /*  Print_information TRUE means attribute_matched
         will NOT be set by attribute name match.
@@ -1463,7 +1509,7 @@ print_a_die_stack(Dwarf_Debug dbg,
         print_else_name_match,lev,srcfiles,srcfiles_cnt,
         &attribute_matched,
         ignore_die_stack,
-        err);
+        err,json_sec_obj);
     return res;
 }
 
@@ -1471,7 +1517,8 @@ static int
 print_die_stack(Dwarf_Debug dbg,
     char **srcfiles,
     Dwarf_Signed srcfiles_cnt,
-    Dwarf_Error*err)
+    Dwarf_Error*err,
+    JSON_Object *json_sec_obj)
 {
     int lev = 0;
     /*  Print_information TRUE means attribute_matched
@@ -1490,7 +1537,7 @@ print_die_stack(Dwarf_Debug dbg,
             print_else_name_match,
             lev,srcfiles,srcfiles_cnt,
             &attribute_matched,
-            ignore_die_stack,err);
+            ignore_die_stack,err,json_sec_obj);
         if (res == DW_DLV_ERROR) {
             return res;
         }
@@ -1505,7 +1552,8 @@ print_die_and_children_internal(Dwarf_Debug dbg,
     Dwarf_Off dieprint_cu_goffset,
     Dwarf_Bool is_info,
     char **srcfiles, Dwarf_Signed cnt,
-    Dwarf_Error *err)
+    Dwarf_Error *err,
+    JSON_Object *json_sec_obj)
 {
     Dwarf_Die child = 0;
     Dwarf_Die sibling = 0;
@@ -1626,7 +1674,7 @@ print_die_and_children_internal(Dwarf_Debug dbg,
                 die_stack_indent_level, srcfiles, cnt,
                 &an_attribute_match_local,
                 ignore_die_stack,
-                err);
+                err,json_sec_obj);
             if (pdres != DW_DLV_OK) {
                 if (in_die != in_die_in) {
                     dwarf_dealloc_die(in_die);
@@ -1638,7 +1686,7 @@ print_die_and_children_internal(Dwarf_Debug dbg,
                 an_attribute_match_local) {
                 if (glflags.gf_display_parent_tree) {
                     pdres = print_die_stack(dbg,srcfiles,cnt,
-                        err);
+                        err,json_sec_obj);
                     if (pdres == DW_DLV_ERROR) {
                         if (in_die != in_die_in) {
                             dwarf_dealloc_die(in_die);
@@ -1649,7 +1697,7 @@ print_die_and_children_internal(Dwarf_Debug dbg,
                     if (glflags.gf_display_children_tree) {
                         pdres = print_a_die_stack(
                             dbg,srcfiles,cnt,
-                            die_stack_indent_level,err);
+                            die_stack_indent_level,err,json_sec_obj);
                         if (pdres == DW_DLV_ERROR) {
                             if (in_die != in_die_in) {
                                 dwarf_dealloc_die(in_die);
@@ -1820,7 +1868,7 @@ print_die_and_children_internal(Dwarf_Debug dbg,
                 dieprint_cu_goffset);
             pdacres = print_die_and_children_internal(dbg, child,
                 dieprint_cu_goffset,
-                is_info, srcfiles, cnt,err);
+                is_info, srcfiles, cnt,err,json_sec_obj);
             EMPTY_DIE_STACK_ENTRY(die_stack_indent_level);
             dwarf_dealloc_die(child);
             die_stack_indent_level--;
@@ -1992,7 +2040,8 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
     char **srcfiles, Dwarf_Signed srcfcnt,
     Dwarf_Bool *an_attr_matched_io,
     Dwarf_Bool ignore_die_stack,
-    Dwarf_Error *err)
+    Dwarf_Error *err,
+    JSON_Object *json_sec_obj)
 {
     Dwarf_Signed i = 0;
     Dwarf_Signed j = 0;
@@ -2009,6 +2058,14 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
     int abbrev_code = dwarf_die_abbrev_code(die);
     LoHiPc  lohipc;
     int indentprespaces = 0;
+
+    JSON_Value *json_die_val = NULL;
+    JSON_Object *json_die_obj = NULL;
+
+    if (glflags.output_json) {
+        json_die_val = json_value_init_object();
+        json_die_obj = json_value_get_object(json_die_val);
+    }
 
     lohipc = lohipc_zero;
     /* Print using indentation see standard_indent() above.
@@ -2070,7 +2127,7 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
             die_stack[die_indent_level].already_printed_ = TRUE;
         }
         if (die_indent_level == 0) {
-            print_cu_hdr_cudie(dbg,die, overall_offset, offset);
+            print_cu_hdr_cudie(dbg,die, overall_offset, offset, json_sec_obj);
         } else if (local_symbols_already_began == FALSE &&
             die_indent_level == 1 && !glflags.dense) {
 
@@ -2200,6 +2257,14 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
                 fputs("\n",stdout);
             }
         }
+        if (glflags.output_json) {
+            json_object_set_number(json_die_obj, JSON_NODE_DIE_INDENT_LEVEL, die_indent_level);
+            json_object_set_number(json_die_obj, JSON_NODE_DIE_GLOBAL_OFFSET, (Dwarf_Unsigned) (overall_offset - offset));
+            json_object_set_number(json_die_obj, JSON_NODE_DIE_OFFSET, (Dwarf_Unsigned)offset);
+            json_object_set_number(json_die_obj, JSON_NODE_DIE_OVERALL_OFFSET, (Dwarf_Unsigned)overall_offset);
+            json_object_set_string(json_die_obj, JSON_NODE_DIE_TAG_NAME, tagname);
+            json_object_set_empty_array(json_die_obj, JSON_NODE_ATTR);
+        }
     }
     if ((glflags.verbose > 2) && (die_indent_level == 0) &&
         srcfcnt  && PRINTING_DIES) {
@@ -2282,7 +2347,11 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
             {
                 Dwarf_Bool attr_match_localb = FALSE;
                 int aresb = 0;
+                JSON_Array *json_attr_arr = NULL;
 
+                if (glflags.output_json) {
+                    json_attr_arr = json_object_get_array(json_die_obj, JSON_NODE_ATTR);
+                }
                 aresb = print_attribute(dbg, die,
                     dieprint_cu_goffset,
                     attr,
@@ -2290,7 +2359,7 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
                     print_else_name_match, die_indent_level,
                     srcfiles, srcfcnt,
                     &lohipc,
-                    &attr_match_localb,err);
+                    &attr_match_localb,err,json_attr_arr);
                 if (aresb == DW_DLV_ERROR) {
                     struct esb_s m;
 
@@ -2341,6 +2410,11 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
         printf("\n");
     }
     *an_attr_matched_io = attribute_matchedpod;
+
+    if (glflags.output_json) {
+        JSON_Array *arr = json_object_get_array(json_sec_obj, JSON_NODE_DIE);
+        json_array_append_value(arr, json_die_val);
+    }
     return DW_DLV_OK;
 }
 
@@ -3875,7 +3949,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
     char **srcfiles, Dwarf_Signed srcfiles_cnt,
     LoHiPc     * lohipc,
     Dwarf_Bool *attr_duplication,
-    Dwarf_Error *err)
+    Dwarf_Error *err,
+    JSON_Array *json_attr_arr)
 {
     Dwarf_Attribute attrib = 0;
     Dwarf_Unsigned  uval = 0;
@@ -3898,6 +3973,14 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
     Dwarf_Half version = 0;
     Dwarf_Half offset_size = 0;
     enum Dwarf_Form_Class fc = DW_FORM_CLASS_UNKNOWN;
+
+    JSON_Value *json_attr_val = NULL;
+    JSON_Object *json_attr_obj = NULL;
+
+    if (glflags.output_json) {
+        json_attr_val = json_value_init_object();
+        json_attr_obj = json_value_get_object(json_attr_val);
+    }
 
     esb_constructor_fixed(&esb_extra,xtrabuf,sizeof(xtrabuf));
     esb_constructor_fixed(&valname,valbuf,sizeof(valbuf));
@@ -5167,6 +5250,22 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
 
     if ((PRINTING_UNIQUE && PRINTING_DIES && print_else_name_match)
         || bTextFound) {
+
+        if (glflags.output_json) {
+            char *v = 0;
+            json_object_set_string(json_attr_obj, JSON_NODE_ATTR_NAME, atname);
+            v = esb_get_string(&valname);
+            v = sanitized(v);
+            json_object_set_string(json_attr_obj, JSON_NODE_ATTR_VALUE, v);
+            if (append_extra_string) {
+                v = esb_get_string(&esb_extra);
+                v = sanitized(v);
+                json_object_set_string(json_attr_obj, JSON_NODE_ATTR_EXTRA, v);
+            } else {
+                json_object_set_null(json_attr_obj, JSON_NODE_ATTR_EXTRA);
+            }
+        }
+
         /*  Print just the Tags and Attributes */
         if (!glflags.gf_display_offsets) {
             printf("%-28s\n",atname);
@@ -5194,6 +5293,11 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
             }
         }
     }
+
+    if (glflags.output_json) {
+        json_array_append_value(json_attr_arr, json_attr_val);
+    }
+
     esb_destructor(&valname);
     esb_destructor(&esb_extra);
     *attr_duplication = found_search_attr;
