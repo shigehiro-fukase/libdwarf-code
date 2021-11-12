@@ -340,6 +340,7 @@ init_global_flags(void)
 
     /* Output formatted file */
     glflags.output_json = 0;
+    glflags.json_root_value = 0;
 }
 
 void
