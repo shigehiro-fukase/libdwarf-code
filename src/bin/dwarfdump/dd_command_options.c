@@ -2439,6 +2439,7 @@ static void arg_output_json(void)
     const char *ctx = "--output-json=";
     const char *path = do_uri_translation(dwoptarg,ctx);
     if (strlen(path) > 0) {
+        do_all();
         glflags.output_json = path;
     } else {
         arg_usage_error = TRUE;
