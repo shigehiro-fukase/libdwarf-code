@@ -434,7 +434,7 @@ print_hipc_lopc_attribute(Dwarf_Debug dbg,
         dieprint_cu_goffset,
         attrib, srcfiles, cnt,
         &highpcstr,glflags.show_form_used,
-        glflags.verbose,err);
+        glflags.verbose,err,NULL);
     if (rv == DW_DLV_ERROR) {
         return rv;
     }

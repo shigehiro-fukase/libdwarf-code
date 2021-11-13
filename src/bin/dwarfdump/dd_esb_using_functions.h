@@ -52,7 +52,8 @@ int get_attr_value(Dwarf_Debug dbg, Dwarf_Half tag,
     char **srcfiles, Dwarf_Signed srcfiles_count,
     struct esb_s *esbp,
     int show_form,int local_verbose,
-    Dwarf_Error *err);
+    Dwarf_Error *err,
+    JSON_Object *json_attr_obj);
 
 void format_sig8_string(Dwarf_Sig8 *data,struct esb_s *out);
 
@@ -62,7 +63,8 @@ int dwarfdump_print_expression_operations(Dwarf_Debug dbg,
     Dwarf_Locdesc_c  locs, /* 2015 interface */
     Dwarf_Unsigned entrycount, /* count of DW_OP operators */
     struct esb_s *string_out,
-    Dwarf_Error *err);
+    Dwarf_Error *err,
+    JSON_Object *json_attr_obj);
 
 int get_true_section_name(Dwarf_Debug dbg,
     const char *standard_name,

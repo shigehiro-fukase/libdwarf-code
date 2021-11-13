@@ -20,19 +20,31 @@ JSON_Status json_object_set_empty_array(JSON_Object *object, const char *name);
 void json_dump(void *rv);
 void json_save(const char * path, void *rv);
 
-#define JSON_NODE_SECTION       "Section"
-#define JSON_NODE_SECNAME       "Section_Name"
-#define JSON_NODE_COMPILE_UNIT  "Compile_Unit"
-#define JSON_NODE_DIE           "DIE"
-# define    JSON_NODE_DIE_INDENT_LEVEL      "Indent_Level"
-# define    JSON_NODE_DIE_GLOBAL_OFFSET     "Global_Offset"
-# define    JSON_NODE_DIE_OFFSET            "Offset"
-# define    JSON_NODE_DIE_OVERALL_OFFSET    "Overall_Offset"
-# define    JSON_NODE_DIE_TAG_NAME          "Tag_Name"
-#define JSON_NODE_ATTR          "Attr"
-# define    JSON_NODE_ATTR_NAME             "Attr_Name"
-# define    JSON_NODE_ATTR_VALUE            "Attr_Value"
-# define    JSON_NODE_ATTR_EXTRA            "Extra"
+#define JSON_NODE_SECTION                           "Section"
+#define JSON_NODE_SECNAME                           "Section_Name"
+#define JSON_NODE_COMPILE_UNIT                      "Compile_Unit"
+#define JSON_NODE_DIE                               "DIE"
+#define JSON_NODE_DIE_INDENT_LEVEL                  "Indent_Level"
+#define JSON_NODE_DIE_GLOBAL_OFFSET                 "Global_Offset"
+#define JSON_NODE_DIE_OFFSET                        "Offset"
+#define JSON_NODE_DIE_OVERALL_OFFSET                "Overall_Offset"
+#define JSON_NODE_DIE_TAG_NAME                      "Tag_Name"
+
+#define JSON_NODE_DIE_ATTR                          "Attr"
+#define JSON_NODE_DIE_ATTR_NAME                     "Name"
+#define JSON_NODE_DIE_ATTR_VALUE                    "Value"
+#define JSON_NODE_DIE_ATTR_VALUE_STRING             "Value_String"
+#define JSON_NODE_DIE_ATTR_VALUE_NUMBER             "Value_Number"
+#define JSON_NODE_DIE_ATTR_EXTRA                    "Extra"
+#define JSON_NODE_DIE_ATTR_DATA_LENGTH_STRING       "Data_Length_String"
+#define JSON_NODE_DIE_ATTR_DATA_LENGTH_NUMBER       "Data_Length_Number"
+#define JSON_NODE_DIE_ATTR_DATA_STRING              "Data_String"
+
+#define JSON_NODE_DIE_ATTR_OP                       "Op"
+#define JSON_NODE_DIE_ATTR_OP_NAME                  "Op_Name"
+#define JSON_NODE_DIE_ATTR_OP_VALUE                 "Op_Value"
+#define JSON_NODE_DIE_ATTR_OP_VALUE_STRING          "Op_Value_String"
+#define JSON_NODE_DIE_ATTR_OP_VALUE_NUMBER          "Op_Value_Number"
 
 #ifdef __cplusplus
 }
