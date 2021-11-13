@@ -210,7 +210,7 @@ load_CU_error_data(Dwarf_Debug dbg,Dwarf_Die cu_die)
                 /* die_indent_level */ 0,
                 cu_die_goff,attrib, srcfiles, srccnt,
                 &namestr, local_show_form_used,local_verbose,
-                &loadcuerr);
+                &loadcuerr,NULL);
             DROP_ERROR_INSTANCE(dbg,ares,loadcuerr);
             if (esb_string_len(&namestr)) {
                 name = esb_get_string(&namestr);
@@ -1687,7 +1687,7 @@ print_location_operations(Dwarf_Debug dbg,
             DW_LKIND_expression /* loclist_source */,
             0, /* no die indent*/
             baseaddr,
-            out_string,err);
+            out_string,err,NULL);
         dwarf_loc_head_c_dealloc(head);
         return lres;
     }
@@ -1719,7 +1719,7 @@ print_location_operations(Dwarf_Debug dbg,
         DW_LKIND_expression,
         0, /* no die indent*/
         baseaddr,
-        out_string,err);
+        out_string,err,NULL);
     dwarf_dealloc(dbg, locdescarray->ld_s, DW_DLA_LOC_BLOCK);
     dwarf_dealloc(dbg, locdescarray, DW_DLA_LOCDESC);
     return res2;
