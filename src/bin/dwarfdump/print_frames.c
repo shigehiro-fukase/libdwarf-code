@@ -194,7 +194,7 @@ load_CU_error_data(Dwarf_Debug dbg,Dwarf_Die cu_die)
                 /* die_indent_level */ 0,
                 cu_die_goff,attrib, srcfiles, srccnt,
                 &namestr, local_show_form_used,local_verbose,
-                &loadcuerr);
+                &loadcuerr,NULL);
             DROP_ERROR_INSTANCE(dbg,ares,loadcuerr);
             if (esb_string_len(&namestr)) {
                 name = esb_get_string(&namestr);
@@ -1634,7 +1634,7 @@ print_expression_operations(Dwarf_Debug dbg,
             ulocentry_count,
             DW_LKIND_expression /* loclist_source */,
             baseaddr,
-            out_string,err);
+            out_string,err,NULL);
         dwarf_dealloc_loc_head_c(head);
         return lres;
     }
