@@ -85,7 +85,8 @@ static int traverse_one_die(Dwarf_Debug dbg,
     Dwarf_Bool Dwarf_Bool,
     char **srcfiles,
     Dwarf_Signed srcfiles_cnt, int die_indent_level,
-    Dwarf_Error*err);
+    Dwarf_Error*err,
+    JSON_Object *json_die_obj, JSON_Object *json_attr_obj);
 static int traverse_attribute(Dwarf_Debug dbg,
     Dwarf_Die die,
     Dwarf_Off dieprint_cu_goffset,
@@ -93,7 +94,8 @@ static int traverse_attribute(Dwarf_Debug dbg,
     Dwarf_Half attr, Dwarf_Attribute attr_in,
     char **srcfiles, Dwarf_Signed srcfiles_cnt,
     int die_indent_level,
-    Dwarf_Error * err);
+    Dwarf_Error * err,
+    JSON_Object *json_die_obj, JSON_Object *json_attr_obj);
 static int print_die_and_children_internal(Dwarf_Debug dbg,
     Dwarf_Die in_die_in,
     Dwarf_Off dieprint_cu_goffset,
@@ -125,7 +127,8 @@ static int _dwarf_print_one_expr_op(Dwarf_Debug dbg,
     Dwarf_Signed *branchdistance,
     int *zerostackdepth,
     struct esb_s *string_out,
-    Dwarf_Error *err);
+    Dwarf_Error *err,
+    JSON_Object *json_attr_obj);
 
 static int get_form_values(Dwarf_Attribute attrib,
     Dwarf_Half * theform, Dwarf_Half * directform,Dwarf_Error *err);
@@ -141,7 +144,7 @@ static int print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
     LoHiPc *lohipc,
     Dwarf_Bool *attr_matched,
     Dwarf_Error *err,
-    JSON_Array *json_attr_arr);
+    JSON_Object *json_die_obj);
 static int print_location_list(Dwarf_Debug dbg,
     Dwarf_Die die,
     Dwarf_Attribute attr,
@@ -2604,7 +2607,7 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
     Dwarf_Bool *an_attr_matched_io,
     Dwarf_Bool ignore_die_stack,
     Dwarf_Error *err,
-    JSON_Object *json_sec_obj)
+    JSON_Object *json_sec_obj) /* parent section */
 {
     Dwarf_Signed i = 0;
     Dwarf_Off offset = 0;
@@ -2825,7 +2828,7 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
             json_object_set_number(json_die_obj, JSON_NODE_DIE_OFFSET, (Dwarf_Unsigned)offset);
             json_object_set_number(json_die_obj, JSON_NODE_DIE_OVERALL_OFFSET, (Dwarf_Unsigned)overall_offset);
             json_object_set_string(json_die_obj, JSON_NODE_DIE_TAG_NAME, tagname);
-            json_object_set_empty_array(json_die_obj, JSON_NODE_ATTR);
+            json_object_set_empty_array(json_die_obj, JSON_NODE_DIE_ATTR);
         }
     }
     if ((glflags.verbose > 2) && (die_indent_level == 0) &&
@@ -2885,11 +2888,7 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
             {
                 Dwarf_Bool attr_match_localb = FALSE;
                 int aresb = 0;
-                JSON_Array *json_attr_arr = NULL;
 
-                if (glflags.output_json) {
-                    json_attr_arr = json_object_get_array(json_die_obj, JSON_NODE_ATTR);
-                }
                 aresb = print_attribute(dbg, die,
                     dieprint_cu_goffset,
                     attrnum,
@@ -2897,7 +2896,7 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
                     print_else_name_match, die_indent_level,
                     srcfiles, srcfcnt,
                     &lohipc,
-                    &attr_match_localb,err,json_attr_arr);
+                    &attr_match_localb,err,json_die_obj);
                 if (aresb == DW_DLV_ERROR) {
                     struct esb_s m;
 
@@ -3618,7 +3617,8 @@ traverse_attribute(Dwarf_Debug dbg, Dwarf_Die die,
     Dwarf_Attribute attr_in,
     char **srcfiles, Dwarf_Signed srcfcnt,
     int die_indent_level,
-    Dwarf_Error *err)
+    Dwarf_Error *err,
+    JSON_Object *json_die_obj, JSON_Object *json_attr_obj)
 {
     Dwarf_Attribute attrib = 0;
     const char * atname = 0;
@@ -3688,7 +3688,8 @@ traverse_attribute(Dwarf_Debug dbg, Dwarf_Die die,
             dieprint_cu_goffset,
             attrib, srcfiles, srcfcnt,
             &specificationstr,glflags.show_form_used,
-            glflags.verbose, err);
+            glflags.verbose, err,
+            json_attr_obj);
         if (res != DW_DLV_OK) {
             esb_destructor(&valname);
             return res;
@@ -3791,7 +3792,8 @@ traverse_attribute(Dwarf_Debug dbg, Dwarf_Die die,
                 target_die_cu_goff,
                 is_info,
                 srcfiles,srcfcnt,die_indent_level,
-                err);
+                err,
+                json_die_obj, json_attr_obj);
             DeleteKeyInBucketGroup(glflags.pVisitedInfo,ref_goff);
             dwarf_dealloc_die(ref_die);
             if (res == DW_DLV_ERROR) {
@@ -3824,7 +3826,8 @@ traverse_one_die(Dwarf_Debug dbg,
     Dwarf_Bool is_info,
     char **srcfiles, Dwarf_Signed cnt,
     int die_indent_level,
-    Dwarf_Error *err)
+    Dwarf_Error *err,
+    JSON_Object *json_die_obj, JSON_Object *json_attr_obj)
 {
     Dwarf_Half tag = 0;
     Dwarf_Off overall_offset = 0;
@@ -3875,7 +3878,8 @@ traverse_one_die(Dwarf_Debug dbg,
             dieprint_cu_goffset,
             attrib, srcfiles,
             cnt, &bucketgroupstr,
-            glflags.show_form_used, glflags.verbose,err);
+            glflags.show_form_used, glflags.verbose,err,
+            json_attr_obj);
         if (res != DW_DLV_OK) {
             return res;
         }
@@ -3927,7 +3931,8 @@ traverse_one_die(Dwarf_Debug dbg,
                     attr,
                     atlist[i],
                     srcfiles, cnt,
-                    die_indent_level,err);
+                    die_indent_level,err,
+                    json_die_obj, json_attr_obj);
                 if (ares == DW_DLV_ERROR) {
                     dealloc_local_atlist(dbg,atlist,atcnt);
                     return ares;
@@ -4392,7 +4397,8 @@ print_location_description(Dwarf_Debug dbg,
     int die_indent_level,
     struct esb_s *base,
     struct esb_s *details,
-    Dwarf_Error *err)
+    Dwarf_Error *err,
+    JSON_Array *json_attr_obj)
 {
     /*  The attribute is a location description
         or location list. */
@@ -4413,7 +4419,8 @@ print_location_description(Dwarf_Debug dbg,
         res  = print_location_list(dbg, die, attrib,
             checking,
             die_indent_level,
-            TRUE,base,err);
+            TRUE,base,err,
+            json_attr_obj);
         if (res == DW_DLV_ERROR) {
             return res;
         }
@@ -4422,7 +4429,8 @@ print_location_description(Dwarf_Debug dbg,
             checking,
             die_indent_level,
             FALSE,
-            details,err);
+            details,err,
+            json_attr_obj);
         if (res == DW_DLV_ERROR) {
             print_error_and_continue(
                 "ERROR: Cannot get location list"
@@ -4495,7 +4503,7 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
     LoHiPc     * lohipc,
     Dwarf_Bool *attr_duplication,
     Dwarf_Error *err,
-    JSON_Array *json_attr_arr)
+    JSON_Object *json_die_obj)
 {
     Dwarf_Attribute attrib = 0;
     Dwarf_Unsigned  uval = 0;
@@ -4521,10 +4529,12 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
     Dwarf_Half address_size_base = 0;
     Dwarf_Half address_size_again = 0;
 
+    JSON_Array *json_attr_arr = NULL;
     JSON_Value *json_attr_val = NULL;
     JSON_Object *json_attr_obj = NULL;
 
     if (glflags.output_json) {
+        json_attr_arr = json_object_get_array(json_die_obj, JSON_NODE_DIE_ATTR);
         json_attr_val = json_value_init_object();
         json_attr_obj = json_value_get_object(json_attr_val);
     }
@@ -4931,7 +4941,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
             attrib, srcfiles, srcfiles_cnt, &valname,
             showform,
             glflags.verbose,
-            err);
+            err,
+            json_attr_obj);
         if (res == DW_DLV_ERROR) {
             print_error_and_continue(
                 "Cannot get attr form value", res,*err);
@@ -4947,7 +4958,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
             res = print_location_description(dbg,attrib,die,
                 checking,
                 attr,die_indent_level,
-                &valname,&esb_extra,err);
+                &valname,&esb_extra,err,
+                json_attr_obj);
             if (res == DW_DLV_ERROR) {
                 print_error_and_continue(
                     "Cannot get location data, attr "
@@ -5021,7 +5033,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
                     checking,
                     die_indent_level,
                     TRUE,
-                    &esb_extra,err);
+                    &esb_extra,err,
+                    json_attr_obj);
                 if (rv == DW_DLV_ERROR) {
                     esb_destructor(&valname);
                     esb_destructor(&esb_extra);
@@ -5039,7 +5052,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
                     attrib, srcfiles, srcfiles_cnt,
                     &upperboundstr,
                     glflags.show_form_used,glflags.verbose,
-                    err);
+                    err,
+                    json_attr_obj);
                 if (rv == DW_DLV_ERROR) {
                     print_error_and_continue(
                         "ERROR: Cannot get DW_AT_upper_bound"
@@ -5085,7 +5099,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
                 dieprint_cu_goffset,attrib,
                 srcfiles, srcfiles_cnt,
                 &valname,
-                glflags.show_form_used,glflags.verbose,err);
+                glflags.show_form_used,glflags.verbose,err,
+                json_attr_obj);
             if (rv == DW_DLV_ERROR) {
                 print_error_and_continue(
                     "Cannot find Attr value"
@@ -5123,7 +5138,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
         ml = get_attr_value(dbg, tag, die,
             dieprint_cu_goffset, attrib, srcfiles,
             srcfiles_cnt, &linkagenamestr, glflags.show_form_used,
-            glflags.verbose,err);
+            glflags.verbose,err,
+            json_attr_obj);
         if (ml == DW_DLV_ERROR) {
             print_error_and_continue(
                 "Cannot  get value "
@@ -5157,7 +5173,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
             get_attr_value(dbg, tag, die,
                 dieprint_cu_goffset,attrib,
                 srcfiles, srcfiles_cnt,
-                &lesb, local_show_form,local_verbose,err);
+                &lesb, local_show_form,local_verbose,err,
+                json_attr_obj);
 
             /*  Look for specific name forms, attempting to
                 notice and report 'odd' identifiers.
@@ -5186,7 +5203,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
         tres = get_attr_value(dbg, tag, die,
             dieprint_cu_goffset,attrib, srcfiles, srcfiles_cnt,
             &templatenamestr, glflags.show_form_used,
-            glflags.verbose,err);
+            glflags.verbose,err,
+            json_attr_obj);
         if (tres == DW_DLV_ERROR) {
             print_error_and_continue(
                 "Cannot  get value "
@@ -5210,7 +5228,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
             tres = get_attr_value(dbg, tag, die,
                 dieprint_cu_goffset,attrib,
                 srcfiles, srcfiles_cnt,
-                &lesb, local_show_form,local_verbose,err);
+                &lesb, local_show_form,local_verbose,err,
+                json_attr_obj);
             /*  Look for specific name forms, attempting to
                 notice and report 'odd' identifiers. */
             if (tres == DW_DLV_ERROR) {
@@ -5258,7 +5277,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
             vres = get_attr_value(dbg, tag, die,
                 dieprint_cu_goffset,attrib,
                 srcfiles, srcfiles_cnt,
-                &lesb, local_show_form,local_verbose,err);
+                &lesb, local_show_form,local_verbose,err,
+                json_attr_obj);
             if (vres == DW_DLV_ERROR) {
                 print_error_and_continue(
                     "Cannot get check-locations value "
@@ -5289,7 +5309,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
                 dieprint_cu_goffset,attrib,
                 srcfiles, srcfiles_cnt,
                 &lesb, local_show_form_used,local_verbose,
-                err);
+                err,
+                json_attr_obj);
             if (sres == DW_DLV_ERROR) {
                 print_error_and_continue(
                     "Cannot get CU name "
@@ -5325,7 +5346,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
         pres = get_attr_value(dbg, tag, die,
             dieprint_cu_goffset,attrib, srcfiles, srcfiles_cnt,
             &lesb, glflags.show_form_used,glflags.verbose,
-            err);
+            err,
+            json_attr_obj);
         if (pres == DW_DLV_ERROR) {
             print_error_and_continue(
                 "Cannot  get value "
@@ -5353,7 +5375,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
             pres = get_attr_value(dbg, tag, die,
                 dieprint_cu_goffset,attrib,
                 srcfiles, srcfiles_cnt,
-                &local_e, show_form_local,local_verbose,err);
+                &local_e, show_form_local,local_verbose,err,
+                json_attr_obj);
             if (pres == DW_DLV_ERROR) {
                 print_error_and_continue(
                     "Cannot  get checking value "
@@ -5393,7 +5416,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
         tres = get_attr_value(dbg, tag, die,
             dieprint_cu_goffset,attrib, srcfiles,
             srcfiles_cnt, &lesb,
-            glflags.show_form_used,glflags.verbose,err);
+            glflags.show_form_used,glflags.verbose,err,
+            json_attr_obj);
         if (tres == DW_DLV_ERROR) {
             struct esb_s m;
             const char *n =
@@ -5568,7 +5592,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
                     ifres = traverse_one_die(dbg,attrib,ref_die,
                         ref_die_cu_goff,
                         is_info,srcfiles,srcfiles_cnt,
-                        die_indent_level, err);
+                        die_indent_level, err,
+                        json_die_obj, json_attr_obj);
                     dwarf_dealloc_die(ref_die);
                     ref_die = 0;
                     --die_indent_level;
@@ -5718,7 +5743,8 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
             dres = get_attr_value(dbg, tag,die,
                 dieprint_cu_goffset,attrib,
                 srcfiles, srcfiles_cnt, &lesb,
-                glflags.show_form_used,glflags.verbose,err);
+                glflags.show_form_used,glflags.verbose,err,
+                json_attr_obj);
             if (dres == DW_DLV_ERROR) {
                 struct esb_s m;
                 const char *n =
@@ -5794,16 +5820,17 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
 
         if (glflags.output_json) {
             char *v = 0;
-            json_object_set_string(json_attr_obj, JSON_NODE_ATTR_NAME, atname);
+            json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_NAME, atname);
+
             v = esb_get_string(&valname);
             v = sanitized(v);
-            json_object_set_string(json_attr_obj, JSON_NODE_ATTR_VALUE, v);
+            json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_VALUE_STRING, v);
             if (append_extra_string) {
                 v = esb_get_string(&esb_extra);
                 v = sanitized(v);
-                json_object_set_string(json_attr_obj, JSON_NODE_ATTR_EXTRA, v);
+                json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_EXTRA, v);
             } else {
-                json_object_set_null(json_attr_obj, JSON_NODE_ATTR_EXTRA);
+                json_object_set_null(json_attr_obj, JSON_NODE_DIE_ATTR_EXTRA);
             }
         }
 
@@ -5975,7 +6002,8 @@ dwarfdump_print_expression_operations(Dwarf_Debug dbg,
     Dwarf_Locdesc_c locdesc,  /* for 2015 interface. */
     Dwarf_Unsigned  entrycount,
     struct esb_s   *string_out,
-    Dwarf_Error    *err)
+    Dwarf_Error    *err,
+    JSON_Object *json_attr_obj)
 {
     Dwarf_Half no_of_ops = 0;
     unsigned i = 0;
@@ -6013,7 +6041,8 @@ dwarfdump_print_expression_operations(Dwarf_Debug dbg,
             &stackchange,
             &branchdistance,
             &zerostackdepth,
-            string_out,err);
+            string_out,err,
+            json_attr_obj);
         if (res == DW_DLV_ERROR) {
             dealloc_skip_branch_array(&op_branch_checking);
             return res;
@@ -6143,7 +6172,8 @@ _dwarf_print_one_expr_op(Dwarf_Debug dbg,
     Dwarf_Signed *branchdistance,
     int   * zerostackdepth,
     struct esb_s *string_out,
-    Dwarf_Error *err)
+    Dwarf_Error *err,
+    JSON_Object *json_attr_obj)
 {
     Dwarf_Small op = 0;
     Dwarf_Unsigned opd1 = 0;
@@ -6155,6 +6185,14 @@ _dwarf_print_one_expr_op(Dwarf_Debug dbg,
     int indentpostspaces = 0;
     Dwarf_Bool showblockoffsets = FALSE;
     struct OpBranchEntry_s *echecking = 0;
+
+    JSON_Value *json_op_val = NULL;
+    JSON_Object *json_op_obj = NULL;
+
+    if (glflags.output_json) {
+        json_op_val = json_value_init_object();
+        json_op_obj = json_value_get_object(json_op_val);
+    }
 
     emit_op_indentation(string_out,die_indent_level,index);
     if (!glflags.dense && !glflags.gf_expr_ops_joined) {
@@ -6178,6 +6216,9 @@ _dwarf_print_one_expr_op(Dwarf_Debug dbg,
         }
     }
     op_name = get_OP_name(op,pd_dwarf_names_print_on_error);
+    if (glflags.output_json) {
+        json_object_set_string(json_op_obj, JSON_NODE_DIE_ATTR_OP_NAME, op_name);
+    }
     if (has_skip_or_branch &&
         glflags.verbose) {
         showblockoffsets = TRUE;
@@ -6209,6 +6250,20 @@ _dwarf_print_one_expr_op(Dwarf_Debug dbg,
         switch (op) {
         case DW_OP_addr:
             bracket_hex(" ",opd1,"",string_out);
+            if (glflags.output_json) {
+                json_object_set_number(json_op_obj, JSON_NODE_DIE_ATTR_OP_VALUE_NUMBER, (double)opd1);
+                {
+                    struct esb_s valstr;
+                    char *v = 0;
+
+                    esb_constructor(&valstr);
+                    bracket_hex("",opd1,"",&valstr);
+                    v = esb_get_string(&valstr);
+                    v = sanitized(v);
+                    json_object_set_string(json_op_obj, JSON_NODE_DIE_ATTR_OP_VALUE_STRING, v);
+                    esb_destructor(&valstr);
+                }
+            }
             break;
         case DW_OP_const1s:
         case DW_OP_const2s:
@@ -6491,6 +6546,9 @@ _dwarf_print_one_expr_op(Dwarf_Debug dbg,
             break;
         }
     }
+    if (glflags.output_json) {
+        json_object_set_value(json_attr_obj, JSON_NODE_DIE_ATTR_OP, json_op_val);
+    }
     return DW_DLV_OK;
 }
 
@@ -6670,7 +6728,8 @@ print_location_list(Dwarf_Debug dbg,
     int die_indent_level,
     int  no_end_newline,
     struct esb_s *details,
-    Dwarf_Error* llerr)
+    Dwarf_Error* llerr,
+    JSON_Object *json_attr_obj)
 {
     Dwarf_Unsigned no_of_elements = 0;
     Dwarf_Loc_Head_c loclist_head = 0; /* For DWARF2-DWARF5 */
@@ -6989,7 +7048,8 @@ print_location_list(Dwarf_Debug dbg,
                 Not both. */
             locentry,
             ulocentry_count, /* How many ops in this loc desc */
-            details,llerr);
+            details,llerr,
+            json_attr_obj);
         if (lres == DW_DLV_ERROR) {
             dwarf_dealloc_loc_head_c(loclist_head);
             return lres;
@@ -7997,7 +8057,8 @@ get_attr_value(Dwarf_Debug dbg, Dwarf_Half tag,
     struct esb_s *esbp,
     int show_form,
     int local_verbose,
-    Dwarf_Error *err)
+    Dwarf_Error *err,
+    JSON_Object *json_attr_obj)
 {
     Dwarf_Half theform = 0;
     char * temps = 0;
@@ -8473,6 +8534,30 @@ get_attr_value(Dwarf_Debug dbg, Dwarf_Half tag,
             }
             if (tempb->bl_len) {
                 esb_append(esbp,": ");
+            }
+            if (glflags.output_json) {
+                struct esb_s valstr;
+                char *v = 0;
+
+                json_object_set_number(json_attr_obj, JSON_NODE_DIE_ATTR_DATA_LENGTH_NUMBER, (double)tempb->bl_len);
+                esb_constructor(&valstr);
+                esb_append_printf_u(&valstr, "0x%04x", tempb->bl_len);
+                v = esb_get_string(&valstr);
+                v = sanitized(v);
+                json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_DATA_LENGTH_STRING, v);
+                esb_destructor(&valstr);
+
+                esb_constructor(&valstr);
+                for (u = 0; u < tempb->bl_len; u++) {
+                    if (u==0) esb_append(&valstr,"0x");
+                    esb_append_printf_u(&valstr,
+                            "%02x",
+                            *(u + (unsigned char *) tempb->bl_data));
+                }
+                v = esb_get_string(&valstr);
+                v = sanitized(v);
+                json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_DATA_STRING, v);
+                esb_destructor(&valstr);
             }
             dwarf_dealloc(dbg, tempb, DW_DLA_BLOCK);
             tempb = 0;
