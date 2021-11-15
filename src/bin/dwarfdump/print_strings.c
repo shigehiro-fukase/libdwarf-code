@@ -42,7 +42,7 @@ Portions Copyright 2008-2012 David Anderson. All rights reserved.
 #include "print_sections.h"
 
 static void
-print_sec_name(Dwarf_Debug dbg)
+print_sec_name(Dwarf_Debug dbg, JSON_Object *json_sec_obj)
 {
     struct esb_s truename;
     char buf[DWARF_SECNAME_BUFFER_SIZE];
@@ -51,12 +51,17 @@ print_sec_name(Dwarf_Debug dbg)
     get_true_section_name(dbg,".debug_str",
         &truename,TRUE);
     printf("\n%s\n",sanitized(esb_get_string(&truename)));
+    if (glflags.output_json) {
+        json_object_set_string(json_sec_obj, JSON_NODE_SECNAME,
+                sanitized(esb_get_string(&truename)));
+    }
     esb_destructor(&truename);
 }
 
 /* print data in .debug_str */
 int
-print_strings(Dwarf_Debug dbg,Dwarf_Error *err)
+print_strings(Dwarf_Debug dbg,Dwarf_Error *err,
+    JSON_Object *json_sec_obj)
 {
     Dwarf_Signed length = 0;
     char* name = 0;
@@ -70,7 +75,7 @@ print_strings(Dwarf_Debug dbg,Dwarf_Error *err)
             == DW_DLV_OK;
         ++loopct) {
         if (!loopct) {
-            print_sec_name(dbg);
+            print_sec_name(dbg,json_sec_obj);
         }
         if (glflags.gf_display_offsets) {
             printf("name at offset 0x%" DW_PR_XZEROS DW_PR_DUx
@@ -83,7 +88,7 @@ print_strings(Dwarf_Debug dbg,Dwarf_Error *err)
         offset += length + 1;
     }
     if (!loopct) {
-        print_sec_name(dbg);
+        print_sec_name(dbg,json_sec_obj);
     }
     /*  An inability to find the section is not necessarily
         a real error, so do not report error unless we've
