@@ -13,10 +13,14 @@
 #include "output_json.h"
 
 static FILE *json_wfp = NULL;
-void json_init(void **prv) {
+void json_init(void **prv, const char * name) {
     if (!glflags.json_root_value) {
         JSON_Value *root_value = json_value_init_object();
         JSON_Object *root_object = json_value_get_object(root_value);
+
+        if (name) {
+            json_object_set_string(root_object, JSON_NODE_FILENAME, name);
+        }
         json_object_set_empty_array(root_object, JSON_NODE_SECTION);
         glflags.json_root_value = root_value;
     }
