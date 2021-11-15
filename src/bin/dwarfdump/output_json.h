@@ -11,7 +11,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-void json_init(void **prv);
+void json_init(void **prv, const char * name);
 void json_term(void *rv);
 void json_add_section(JSON_Value *json_sec_val);
 
@@ -20,6 +20,7 @@ JSON_Status json_object_set_empty_array(JSON_Object *object, const char *name);
 void json_dump(void *rv);
 void json_save(const char * path, void *rv);
 
+#define JSON_NODE_FILENAME                          "Filename"
 #define JSON_NODE_SECTION                           "Section"
 #define JSON_NODE_SECNAME                           "Section_Name"
 #define JSON_NODE_COMPILE_UNIT                      "Compile_Unit"
