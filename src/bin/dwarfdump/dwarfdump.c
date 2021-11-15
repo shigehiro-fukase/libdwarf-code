@@ -1353,9 +1353,23 @@ process_one_file(
     if (glflags.gf_string_flag) {
         Dwarf_Error err = 0;
         int res = 0;
+        JSON_Value *json_sec_val = NULL;
+        JSON_Object *json_sec_obj = NULL;
 
+        if (glflags.output_json) {
+            json_sec_val = json_value_init_object();
+            json_sec_obj = json_value_get_object(json_sec_val);
+        }
         reset_overall_CU_error_data();
-        res = print_strings(dbg,&err);
+        res = print_strings(dbg,&err,json_sec_obj);
+        if (glflags.output_json) {
+            size_t count = json_object_get_count(json_sec_obj);
+            if (count > 0) {
+                json_add_section(json_sec_val);
+            } else {
+                json_value_free(json_sec_val);
+            }
+        }
         if (res == DW_DLV_ERROR) {
             print_error_and_continue(
                 "printing the .debug_str section"
