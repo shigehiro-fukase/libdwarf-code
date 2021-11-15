@@ -395,7 +395,7 @@ main(int argc, char *argv[])
     }
 
     if (glflags.output_json) {
-        json_init(NULL);
+        json_init(NULL, file_name);
     }
 
     /*  Allow the user to hide some warnings by using
