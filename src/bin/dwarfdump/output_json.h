@@ -27,7 +27,7 @@ void json_save(const char * path, void *rv);
 #define JSON_NODE_DIE                               "DIE"
 #define JSON_NODE_DIE_INDENT_LEVEL                  "Indent_Level"
 #define JSON_NODE_DIE_GLOBAL_OFFSET                 "Global_Offset"
-#define JSON_NODE_DIE_OFFSET                        "Offset"
+#define JSON_NODE_DIE_OFFSET_ID                     "Offset_ID"
 #define JSON_NODE_DIE_OVERALL_OFFSET                "Overall_Offset"
 #define JSON_NODE_DIE_TAG_NAME                      "Tag_Name"
 
