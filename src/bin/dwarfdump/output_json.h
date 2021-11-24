@@ -37,7 +37,6 @@ void json_save(const char * path, void *rv);
 #define JSON_NODE_DIE_ATTR_NAME                     "Name"
 #define JSON_NODE_DIE_ATTR_VALUE                    "Value"
 #define JSON_NODE_DIE_ATTR_VALUE_STRING             "Value_String"
-#define JSON_NODE_DIE_ATTR_VALUE_NUMBER             "Value_Number"
 #if defined(CONFIG_OUTPUT_JSON_DIE_ATTR_EXTRA) && (CONFIG_OUTPUT_JSON_DIE_ATTR_EXTRA != 0)
 #define JSON_NODE_DIE_ATTR_EXTRA                    "Extra"
 #endif /* CONFIG_OUTPUT_JSON_DIE_ATTR_EXTRA */
