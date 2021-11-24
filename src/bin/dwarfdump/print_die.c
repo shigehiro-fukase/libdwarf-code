@@ -5887,7 +5887,7 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
 
             v = esb_get_string(&valname);
             v = sanitized(v);
-            json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_VALUE_STRING, v);
+            json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_VALUE, v);
 #if defined(CONFIG_OUTPUT_JSON_DIE_ATTR_EXTRA) && (CONFIG_OUTPUT_JSON_DIE_ATTR_EXTRA != 0)
             if (append_extra_string) {
                 v = esb_get_string(&esb_extra);
@@ -6417,7 +6417,7 @@ _dwarf_print_one_expr_op(Dwarf_Debug dbg,
                     bracket_hex("",opd1,"",&valstr);
                     v = esb_get_string(&valstr);
                     v = sanitized(v);
-                    json_object_set_string(json_op_obj, JSON_NODE_DIE_ATTR_OP_VALUE_STRING, v);
+                    json_object_set_string(json_op_obj, JSON_NODE_DIE_ATTR_OP_VALUE, v);
                     esb_destructor(&valstr);
                 }
 #endif
@@ -8870,7 +8870,7 @@ get_attr_value(Dwarf_Debug dbg, Dwarf_Half tag,
                 esb_append_printf_u(&valstr, "0x%04x", tempb->bl_len);
                 v = esb_get_string(&valstr);
                 v = sanitized(v);
-                json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_DATA_LENGTH_STRING, v);
+                json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_DATA_LENGTH, v);
                 esb_destructor(&valstr);
 
                 esb_constructor(&valstr);
@@ -8882,7 +8882,7 @@ get_attr_value(Dwarf_Debug dbg, Dwarf_Half tag,
                 }
                 v = esb_get_string(&valstr);
                 v = sanitized(v);
-                json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_DATA_STRING, v);
+                json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_DATA, v);
                 esb_destructor(&valstr);
             }
             dwarf_dealloc(dbg, tempb, DW_DLA_BLOCK);
