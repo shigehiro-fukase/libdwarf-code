@@ -5,6 +5,8 @@
 #ifndef ___OUTPUT_JSON_H___
 #define ___OUTPUT_JSON_H___
 
+#define CONFIG_OUTPUT_JSON_DIE_ATTR_EXTRA           0
+
 #include "parson.h"
 
 #ifdef __cplusplus
@@ -36,7 +38,9 @@ void json_save(const char * path, void *rv);
 #define JSON_NODE_DIE_ATTR_VALUE                    "Value"
 #define JSON_NODE_DIE_ATTR_VALUE_STRING             "Value_String"
 #define JSON_NODE_DIE_ATTR_VALUE_NUMBER             "Value_Number"
+#if defined(CONFIG_OUTPUT_JSON_DIE_ATTR_EXTRA) && (CONFIG_OUTPUT_JSON_DIE_ATTR_EXTRA != 0)
 #define JSON_NODE_DIE_ATTR_EXTRA                    "Extra"
+#endif /* CONFIG_OUTPUT_JSON_DIE_ATTR_EXTRA */
 #define JSON_NODE_DIE_ATTR_DATA_LENGTH_STRING       "Data_Length_String"
 #define JSON_NODE_DIE_ATTR_DATA_LENGTH_NUMBER       "Data_Length_Number"
 #define JSON_NODE_DIE_ATTR_DATA_STRING              "Data_String"
