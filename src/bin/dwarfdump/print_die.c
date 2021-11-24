@@ -5884,6 +5884,7 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
             v = esb_get_string(&valname);
             v = sanitized(v);
             json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_VALUE_STRING, v);
+#if defined(CONFIG_OUTPUT_JSON_DIE_ATTR_EXTRA) && (CONFIG_OUTPUT_JSON_DIE_ATTR_EXTRA != 0)
             if (append_extra_string) {
                 v = esb_get_string(&esb_extra);
                 v = sanitized(v);
@@ -5891,6 +5892,7 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
             } else {
                 json_object_set_null(json_attr_obj, JSON_NODE_DIE_ATTR_EXTRA);
             }
+#endif /* CONFIG_OUTPUT_JSON_DIE_ATTR_EXTRA */
         }
 
         /*  Print just the Tags and Attributes */
