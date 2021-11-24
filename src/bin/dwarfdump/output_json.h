@@ -42,10 +42,10 @@ void json_save(const char * path, void *rv);
 #define JSON_NODE_DIE_ATTR_DATA_STRING              "Data_String"
 
 #define JSON_NODE_DIE_ATTR_OP                       "Op"
-#define JSON_NODE_DIE_ATTR_OP_NAME                  "Op_Name"
-#define JSON_NODE_DIE_ATTR_OP_VALUE                 "Op_Value"
-#define JSON_NODE_DIE_ATTR_OP_VALUE_STRING          "Op_Value_String"
-#define JSON_NODE_DIE_ATTR_OP_VALUE_NUMBER          "Op_Value_Number"
+#define JSON_NODE_DIE_ATTR_OP_NAME                  "Name"
+#define JSON_NODE_DIE_ATTR_OP_VALUE                 "Value"
+#define JSON_NODE_DIE_ATTR_OP_VALUE_STRING          "Value_String"
+#define JSON_NODE_DIE_ATTR_OP_VALUE_NUMBER          "Value_Number"
 
 #ifdef __cplusplus
 }

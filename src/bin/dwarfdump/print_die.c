@@ -6400,7 +6400,9 @@ _dwarf_print_one_expr_op(Dwarf_Debug dbg,
         case DW_OP_addr:
             bracket_hex(" ",opd1,"",string_out);
             if (glflags.output_json) {
+#if 0
                 json_object_set_number(json_op_obj, JSON_NODE_DIE_ATTR_OP_VALUE_NUMBER, (double)opd1);
+#else
                 {
                     struct esb_s valstr;
                     char *v = 0;
@@ -6412,6 +6414,7 @@ _dwarf_print_one_expr_op(Dwarf_Debug dbg,
                     json_object_set_string(json_op_obj, JSON_NODE_DIE_ATTR_OP_VALUE_STRING, v);
                     esb_destructor(&valstr);
                 }
+#endif
             }
             break;
         case DW_OP_const1s:
