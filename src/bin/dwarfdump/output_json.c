@@ -22,13 +22,9 @@
  THE SOFTWARE.
  */
 
+#include <stdio.h>
 #include "libdwarf.h"
 #include "dd_globals.h"
-#include "dd_naming.h"
-#include "dd_esb.h"
-#include "dd_esb_using_functions.h"
-#include "dd_sanitized.h"
-
 #include "parson.h"
 #include "output_json.h"
 
