@@ -22,12 +22,8 @@
  THE SOFTWARE.
  */
 
+#include <stdio.h>
 #include "globals.h"
-#include "naming.h"
-#include "esb.h"
-#include "esb_using_functions.h"
-#include "sanitized.h"
-
 #include "parson.h"
 #include "output_json.h"
 
