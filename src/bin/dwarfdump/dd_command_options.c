@@ -413,6 +413,7 @@ static void arg_search_print_tree(void);
 static void arg_output_json(void);
 static void arg_json_file(void);
 static void arg_json_restrict_unit(void);
+static void arg_json_restrict_dir(void);
 
 static void arg_help(void);
 static void arg_trace(void);
@@ -678,6 +679,8 @@ static const char *usage_long_text[] = {
 "--json-file=<path>           Name the output JSON file",
 "--json-restrict-unit=<text>",
 "                             Restrict compile unit name(s) (comma saparated)",
+"--json-restrict-dir=<text>",
+"                             Restrict compile dir path(s) (comma saparated)",
 "-------------------------------------------------------------------",
 "Help & Version",
 "-------------------------------------------------------------------",
@@ -825,6 +828,7 @@ OPT_SEARCH_REGEX_COUNT,
 OPT_OUTPUT_JSON,              /* --output-json=<path>, equivalent for --json-file=<path> */
 OPT_JSON_FILE,                /* --json-file=<path> */
 OPT_JSON_RESTRICT_UNIT,       /* --json-restrict-unit=<text> */
+OPT_JSON_RESTRICT_DIR,        /* --json-restrict-dir=<text> */
 
 /* Help & Version                                            */
 OPT_HELP,                     /* -h  --help                  */
@@ -988,6 +992,7 @@ OPT_FORMAT_SUPPRESS_OFFSETS },
 {"output-json",           dwrequired_argument, 0, OPT_OUTPUT_JSON },
 {"json-file",             dwrequired_argument, 0, OPT_JSON_FILE },
 {"json-restrict-unit",    dwrequired_argument, 0, OPT_JSON_RESTRICT_UNIT },
+{"json-restrict-dir",     dwrequired_argument, 0, OPT_JSON_RESTRICT_DIR },
 
 /* Help & Version. */
 {"help",          dwno_argument, 0, OPT_HELP         },
@@ -2539,6 +2544,24 @@ static void arg_json_restrict_unit(void)
         arg_usage_error = TRUE;
     }
 }
+/* '--json-restrict-dir=<text>' option. */
+static void arg_json_restrict_dir(void)
+{
+    const char *ctx = "--json-restrict-dir=";
+    const char *path = do_uri_translation(dwoptarg,ctx);
+    if (strlen(path) > 0) {
+        int srtc = 0;
+        char ** srtv = NULL;
+        if (split_csv(path, &srtc, &srtv) < 0) {
+            arg_usage_error = TRUE;
+        } else {
+            glflags.json_restrict_dir_num = srtc;
+            glflags.json_restrict_dir_list = srtv;
+        }
+    } else {
+        arg_usage_error = TRUE;
+    }
+}
 
 /*  Process the command line arguments and set the
     appropriate options. All
@@ -2747,6 +2770,7 @@ set_command_options(int argc, char *argv[])
         case OPT_OUTPUT_JSON: arg_output_json(); break;
         case OPT_JSON_FILE: arg_json_file(); break;
         case OPT_JSON_RESTRICT_UNIT: arg_json_restrict_unit(); break;
+        case OPT_JSON_RESTRICT_DIR: arg_json_restrict_dir(); break;
 
         /* Help & Version. */
         case OPT_HELP:          arg_help();          break;
