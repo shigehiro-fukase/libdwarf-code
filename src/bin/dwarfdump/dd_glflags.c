@@ -338,9 +338,11 @@ init_global_flags(void)
     /*  Check errors. */
     glflags.check_error = 0;
 
-    /* Output formatted file */
+    /* Output JSON file */
     glflags.json_file = 0;
     glflags.json_root_value = 0;
+    glflags.json_restrict_unit_num = 0;
+    glflags.json_restrict_unit_list = 0;
 }
 
 void
