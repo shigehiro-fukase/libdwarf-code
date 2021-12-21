@@ -343,7 +343,7 @@ init_global_flags(void)
     glflags.gf_print_alloc_sums = 0;
 
     /* Output formatted file */
-    glflags.output_json = 0;
+    glflags.json_file = 0;
     glflags.json_root_value = 0;
 }
 

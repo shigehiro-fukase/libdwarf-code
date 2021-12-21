@@ -69,7 +69,7 @@ print_locs(Dwarf_Debug dbg, Dwarf_Error *err)
     JSON_Value *json_sec_val = NULL;
     JSON_Object *json_sec_obj = NULL;
 
-    if (glflags.output_json) {
+    if (glflags.json_file) {
         json_sec_val = json_value_init_object();
         json_sec_obj = json_value_get_object(json_sec_val);
     }
@@ -166,7 +166,7 @@ print_locs(Dwarf_Debug dbg, Dwarf_Error *err)
         /* Nothing happened, so announce the section name anyway */
         print_secname(dbg,esb_get_string(&secname),json_sec_obj);
     }
-    if (glflags.output_json) {
+    if (glflags.json_file) {
         json_add_section(json_sec_val);
     }
     esb_destructor(&exprstring);

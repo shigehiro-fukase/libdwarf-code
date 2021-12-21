@@ -388,7 +388,7 @@ struct glflags_s {
     int gf_print_alloc_sums;
 
     /* Output formatted file */
-    const char *output_json;
+    const char *json_file;
     void * json_root_value; /* 'parson' JSON parser library `JSON_Value*` */
 };
 

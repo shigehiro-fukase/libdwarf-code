@@ -575,7 +575,7 @@ main(int argc, char *argv[])
         print_args(argc,argv);
     }
 
-    if (glflags.output_json) {
+    if (glflags.json_file) {
         json_init(NULL, file_name);
     }
 
@@ -749,7 +749,7 @@ main(int argc, char *argv[])
     }
     /* ======= END PROCESSING OBJECT FILES BY TYPE ===== */
 
-    if (glflags.output_json) {
+    if (glflags.json_file) {
         json_dump(NULL);
         json_term(NULL);
     }
@@ -1430,13 +1430,13 @@ process_one_file(
         JSON_Value *json_sec_val = NULL;
         JSON_Object *json_sec_obj = NULL;
 
-        if (glflags.output_json) {
+        if (glflags.json_file) {
             json_sec_val = json_value_init_object();
             json_sec_obj = json_value_get_object(json_sec_val);
         }
         reset_overall_CU_error_data();
         res = print_strings(dbg,&err,json_sec_obj);
-        if (glflags.output_json) {
+        if (glflags.json_file) {
             size_t count = json_object_get_count(json_sec_obj);
             if (count > 0) {
                 json_add_section(json_sec_val);
@@ -2199,18 +2199,18 @@ print_gnu_debuglink(Dwarf_Debug dbg, Dwarf_Error *err)
     if (res == DW_DLV_NO_ENTRY) {
         return res;
     } else if (res == DW_DLV_ERROR) {
-        if (glflags.output_json) {
+        if (glflags.json_file) {
             json_sec_val = json_value_init_object();
             json_sec_obj = json_value_get_object(json_sec_val);
         }
         print_secname(dbg,".gnu_debuglink",json_sec_obj);
-        if (glflags.output_json) {
+        if (glflags.json_file) {
             json_add_section(json_sec_val);
         }
         return res;
     }
     if (crcbytes) {
-        if (glflags.output_json) {
+        if (glflags.json_file) {
             json_sec_val = json_value_init_object();
             json_sec_obj = json_value_get_object(json_sec_val);
         }
@@ -2235,12 +2235,12 @@ print_gnu_debuglink(Dwarf_Debug dbg, Dwarf_Error *err)
                     sanitized(link_path));
             }
         }
-        if (glflags.output_json) {
+        if (glflags.json_file) {
             json_add_section(json_sec_val);
         }
     }
     if (buildidlength) {
-        if (glflags.output_json) {
+        if (glflags.json_file) {
             json_sec_val = json_value_init_object();
             json_sec_obj = json_value_get_object(json_sec_val);
         }
@@ -2263,7 +2263,7 @@ print_gnu_debuglink(Dwarf_Debug dbg, Dwarf_Error *err)
             }
             printf("\n");
         }
-        if (glflags.output_json) {
+        if (glflags.json_file) {
             json_add_section(json_sec_val);
         }
     }
