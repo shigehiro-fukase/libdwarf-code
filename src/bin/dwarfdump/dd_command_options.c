@@ -412,6 +412,7 @@ static void arg_search_print_tree(void);
 
 static void arg_output_json(void);
 static void arg_json_file(void);
+static void arg_json_restrict_section(void);
 static void arg_json_restrict_unit(void);
 static void arg_json_restrict_dir(void);
 
@@ -677,6 +678,8 @@ static const char *usage_long_text[] = {
 "-------------------------------------------------------------------",
 "--output-json=<path>         Equivalent for '--json-file=<path>'",
 "--json-file=<path>           Name the output JSON file",
+"--json-restrict-section=<text>",
+"                             Restrict section name(s) (comma saparated)",
 "--json-restrict-unit=<text>",
 "                             Restrict compile unit name(s) (comma saparated)",
 "--json-restrict-dir=<text>",
@@ -827,6 +830,7 @@ OPT_SEARCH_REGEX_COUNT,
 /* Output formatted file */
 OPT_OUTPUT_JSON,              /* --output-json=<path>, equivalent for --json-file=<path> */
 OPT_JSON_FILE,                /* --json-file=<path> */
+OPT_JSON_RESTRICT_SECTION,    /* --json-restrict-section=<text> */
 OPT_JSON_RESTRICT_UNIT,       /* --json-restrict-unit=<text> */
 OPT_JSON_RESTRICT_DIR,        /* --json-restrict-dir=<text> */
 
@@ -991,6 +995,7 @@ OPT_FORMAT_SUPPRESS_OFFSETS },
 /* Output formatted file */
 {"output-json",           dwrequired_argument, 0, OPT_OUTPUT_JSON },
 {"json-file",             dwrequired_argument, 0, OPT_JSON_FILE },
+{"json-restrict-section", dwrequired_argument, 0, OPT_JSON_RESTRICT_SECTION },
 {"json-restrict-unit",    dwrequired_argument, 0, OPT_JSON_RESTRICT_UNIT },
 {"json-restrict-dir",     dwrequired_argument, 0, OPT_JSON_RESTRICT_DIR },
 
@@ -2526,6 +2531,24 @@ L_ERROR:
     }
     return -1;
 }
+/* '--json-restrict-section=<text>' option. */
+static void arg_json_restrict_section(void)
+{
+    const char *ctx = "--json-restrict-section=";
+    const char *path = do_uri_translation(dwoptarg,ctx);
+    if (strlen(path) > 0) {
+        int srtc = 0;
+        char ** srtv = NULL;
+        if (split_csv(path, &srtc, &srtv) < 0) {
+            arg_usage_error = TRUE;
+        } else {
+            glflags.json_restrict_section_num = srtc;
+            glflags.json_restrict_section_list = srtv;
+        }
+    } else {
+        arg_usage_error = TRUE;
+    }
+}
 /* '--json-restrict-unit=<text>' option. */
 static void arg_json_restrict_unit(void)
 {
@@ -2769,6 +2792,7 @@ set_command_options(int argc, char *argv[])
         /* Output formatted file */
         case OPT_OUTPUT_JSON: arg_output_json(); break;
         case OPT_JSON_FILE: arg_json_file(); break;
+        case OPT_JSON_RESTRICT_SECTION: arg_json_restrict_section(); break;
         case OPT_JSON_RESTRICT_UNIT: arg_json_restrict_unit(); break;
         case OPT_JSON_RESTRICT_DIR: arg_json_restrict_dir(); break;
 
