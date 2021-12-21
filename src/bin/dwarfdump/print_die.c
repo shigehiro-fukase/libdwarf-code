@@ -701,7 +701,7 @@ print_cu_hdr_cudie(Dwarf_Unsigned overall_offset,
         (Dwarf_Unsigned)(overall_offset - offset));
     printf(":\n");
 
-    if (glflags.output_json) {
+    if (glflags.json_file) {
         json_object_dotset_number(json_obj,
                 JSON_NODE_COMPILE_UNIT ".header_overall_offset",
                 (Dwarf_Unsigned)(overall_offset - offset));
@@ -1424,7 +1424,7 @@ print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
                     JSON_Value *json_sec_val = NULL;
                     JSON_Object *json_sec_obj = NULL;
 
-                    if (glflags.output_json) {
+                    if (glflags.json_file) {
                         struct esb_s sec_name;
                         json_sec_val = json_value_init_object();
                         json_sec_obj = json_value_get_object(json_sec_val);
@@ -1459,7 +1459,7 @@ print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
                         dwarf_dealloc_die(cu_die2);
                         return pres;
                     }
-                    if (glflags.output_json) {
+                    if (glflags.json_file) {
                         json_add_section(json_sec_val);
                     }
                 }
@@ -1494,14 +1494,14 @@ print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
                     JSON_Value *json_sec_val = NULL;
                     JSON_Object *json_sec_obj = NULL;
 
-                    if (glflags.output_json) {
+                    if (glflags.json_file) {
                         json_sec_val = json_value_init_object();
                         json_sec_obj = json_value_get_object(json_sec_val);
                     }
                     plnres = print_line_numbers_this_cu(dbg,
                         cu_die2,
                         srcfiles,srcfiles_cnt,pod_err,json_sec_obj);
-                    if (glflags.output_json) {
+                    if (glflags.json_file) {
                         json_add_section(json_sec_val);
                     }
                     if (plnres == DW_DLV_ERROR) {
@@ -1532,7 +1532,7 @@ print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
                     JSON_Value *json_sec_val = NULL;
                     JSON_Object *json_sec_obj = NULL;
 
-                    if (glflags.output_json) {
+                    if (glflags.json_file) {
                         json_sec_val = json_value_init_object();
                         json_sec_obj = json_value_get_object(json_sec_val);
                     }
@@ -1544,7 +1544,7 @@ print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
                         TRUE /* descend_into_imports */,
                         in_import_list,
                         import_offset,pod_err,json_sec_obj);
-                    if (glflags.output_json) {
+                    if (glflags.json_file) {
                         size_t count = json_object_get_count(json_sec_obj);
                         if (count > 0) {
                             json_object_set_string(json_sec_obj, JSON_NODE_SECNAME,
@@ -1577,7 +1577,7 @@ print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
                             if (mres != DW_DLV_OK) {
                                 break;
                             }
-                            if (glflags.output_json) {
+                            if (glflags.json_file) {
                                 /* re-use json_sec_val and json_sec_obj  */
                                 json_sec_val = json_value_init_object();
                                 json_sec_obj = json_value_get_object(json_sec_val);
@@ -1591,7 +1591,7 @@ print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
                                 in_import_list,
                                 import_offset,
                                 pod_err,json_sec_obj);
-                            if (glflags.output_json) {
+                            if (glflags.json_file) {
                                 size_t count = json_object_get_count(json_sec_obj);
                                 if (count > 0) {
                                     json_object_set_string(json_sec_obj, JSON_NODE_SECNAME,
@@ -2708,7 +2708,7 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
     JSON_Value *json_die_val = NULL;
     JSON_Object *json_die_obj = NULL;
 
-    if (glflags.output_json) {
+    if (glflags.json_file) {
         json_die_val = json_value_init_object();
         json_die_obj = json_value_get_object(json_die_val);
     }
@@ -2903,7 +2903,7 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
                 fputs("\n",stdout);
             }
         }
-        if (glflags.output_json) {
+        if (glflags.json_file) {
             struct esb_s s;
             esb_constructor(&s);
             esb_append_printf_u(&s, "<0x%" DW_PR_XZEROS DW_PR_DUx ">", (Dwarf_Unsigned)offset);
@@ -3032,7 +3032,7 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
     }
     *an_attr_matched_io = attribute_matchedpod;
 
-    if (glflags.output_json) {
+    if (glflags.json_file) {
         JSON_Array *arr = json_object_get_array(json_sec_obj, JSON_NODE_DIE);
         json_array_append_value(arr, json_die_val);
     }
@@ -4630,7 +4630,7 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
     JSON_Value *json_attr_val = NULL;
     JSON_Object *json_attr_obj = NULL;
 
-    if (glflags.output_json) {
+    if (glflags.json_file) {
         json_attr_arr = json_object_get_array(json_die_obj, JSON_NODE_DIE_ATTR);
         json_attr_val = json_value_init_object();
         json_attr_obj = json_value_get_object(json_attr_val);
@@ -5877,7 +5877,7 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
     if ((PRINTING_UNIQUE && PRINTING_DIES && print_else_name_match)
         || bTextFound) {
 
-        if (glflags.output_json) {
+        if (glflags.json_file) {
             char *v = 0;
             json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_NAME, atname);
 
@@ -5923,7 +5923,7 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
         }
     }
 
-    if (glflags.output_json) {
+    if (glflags.json_file) {
         json_array_append_value(json_attr_arr, json_attr_val);
     }
 
@@ -6340,7 +6340,7 @@ _dwarf_print_one_expr_op(Dwarf_Debug dbg,
     JSON_Value *json_op_val = NULL;
     JSON_Object *json_op_obj = NULL;
 
-    if (glflags.output_json) {
+    if (glflags.json_file) {
         json_op_val = json_value_init_object();
         json_op_obj = json_value_get_object(json_op_val);
     }
@@ -6367,7 +6367,7 @@ _dwarf_print_one_expr_op(Dwarf_Debug dbg,
         }
     }
     op_name = get_OP_name(op,pd_dwarf_names_print_on_error);
-    if (glflags.output_json) {
+    if (glflags.json_file) {
         json_object_set_string(json_op_obj, JSON_NODE_DIE_ATTR_OP_NAME, op_name);
     }
     if (has_skip_or_branch &&
@@ -6401,7 +6401,7 @@ _dwarf_print_one_expr_op(Dwarf_Debug dbg,
         switch (op) {
         case DW_OP_addr:
             bracket_hex(" ",opd1,"",string_out);
-            if (glflags.output_json) {
+            if (glflags.json_file) {
 #if 0
                 json_object_set_number(json_op_obj, JSON_NODE_DIE_ATTR_OP_VALUE_NUMBER, (double)opd1);
 #else
@@ -6737,7 +6737,7 @@ _dwarf_print_one_expr_op(Dwarf_Debug dbg,
             break;
         }
     }
-    if (glflags.output_json) {
+    if (glflags.json_file) {
         json_object_set_value(json_attr_obj, JSON_NODE_DIE_ATTR_OP, json_op_val);
     }
     return DW_DLV_OK;
@@ -8727,7 +8727,7 @@ get_attr_value(Dwarf_Debug dbg, Dwarf_Half tag,
             if (tempb->bl_len) {
                 esb_append(esbp,": ");
             }
-            if (glflags.output_json) {
+            if (glflags.json_file) {
                 struct esb_s valstr;
                 char *v = 0;
 
