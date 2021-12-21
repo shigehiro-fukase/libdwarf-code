@@ -43,13 +43,13 @@ void json_init(void **prv, const char * name) {
     if (prv) {
         *prv = glflags.json_root_value;
     }
-    if (glflags.output_json) {
-        json_wfp = fopen(glflags.output_json, "w");
+    if (glflags.json_file) {
+        json_wfp = fopen(glflags.json_file, "w");
         if (!json_wfp) {
             fprintf(stderr, "%s ERROR:  "
                 "can't open save file.... %s\n",
                 glflags.program_name,
-                glflags.output_json);
+                glflags.json_file);
         }
     }
 }

@@ -189,7 +189,7 @@ _print_aranges(Dwarf_Debug dbg,Dwarf_Error *ga_err,JSON_Object *json_sec_obj)
             &truename,TRUE);
         printf("\n%s\n",sanitized(esb_get_string(&truename)));
 
-        if (glflags.output_json) {
+        if (glflags.json_file) {
             json_object_set_string(json_sec_obj, JSON_NODE_SECNAME,
                     sanitized(esb_get_string(&truename)));
         }
@@ -441,14 +441,14 @@ print_aranges(Dwarf_Debug dbg,Dwarf_Error *ga_err)
     JSON_Value *json_sec_val = NULL;
     JSON_Object *json_sec_obj = NULL;
 
-    if (glflags.output_json) {
+    if (glflags.json_file) {
         json_sec_val = json_value_init_object();
         json_sec_obj = json_value_get_object(json_sec_val);
     }
 
     ret = _print_aranges(dbg,ga_err,json_sec_obj);
 
-    if (glflags.output_json) {
+    if (glflags.json_file) {
         json_add_section(json_sec_val);
     }
 }
