@@ -395,6 +395,10 @@ struct glflags_s {
     /* Output JSON file */
     const char *json_file;
     void * json_root_value; /* 'parson' JSON parser library `JSON_Value*` */
+
+    int json_restrict_section_num;
+    const char **json_restrict_section_list;
+
     int json_restrict_unit_num;
     const char **json_restrict_unit_list;
 
