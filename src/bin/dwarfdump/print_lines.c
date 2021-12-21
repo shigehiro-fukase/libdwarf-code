@@ -935,7 +935,7 @@ print_line_numbers_this_cu(Dwarf_Debug dbg, Dwarf_Die cu_die,
             &truename,FALSE); /* Ignore the COMPRESSED flags */
         printf("\n%s: line number info for a single cu\n",
             sanitized(esb_get_string(&truename)));
-        if (glflags.output_json) {
+        if (glflags.json_file) {
             json_object_set_string(json_sec_obj, JSON_NODE_SECNAME,
                     sanitized(esb_get_string(&truename)));
         }

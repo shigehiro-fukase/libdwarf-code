@@ -55,7 +55,7 @@ print_sec_name(Dwarf_Debug dbg, JSON_Object *json_sec_obj)
     get_true_section_name(dbg,".debug_str",
         &truename,TRUE);
     printf("\n%s\n",sanitized(esb_get_string(&truename)));
-    if (glflags.output_json) {
+    if (glflags.json_file) {
         json_object_set_string(json_sec_obj, JSON_NODE_SECNAME,
                 sanitized(esb_get_string(&truename)));
     }
