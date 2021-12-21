@@ -427,6 +427,7 @@ static void arg_search_print_parent(void);
 static void arg_search_print_tree(void);
 
 static void arg_output_json(void);
+static void arg_json_file(void);
 
 static void arg_help(void);
 static void arg_trace(void);
@@ -670,9 +671,10 @@ static const char *usage_long_text[] = {
 "                             (wide format) with -S",
 " ",
 "-------------------------------------------------------------------",
-" Output formatted file",
+" Output JSON file",
 "-------------------------------------------------------------------",
-"--output-json=<path>         Name the output JSON file",
+"--output-json=<path>         Equivalent for '--json-file=<path>'",
+"--json-file=<path>           Name the output JSON file",
 "-------------------------------------------------------------------",
 "Help & Version",
 "-------------------------------------------------------------------",
@@ -835,7 +837,8 @@ OPT_SEARCH_REGEX_COUNT,
     /* -Svregex=<text> --search-regex-count<text>*/
 
 /* Output formatted file */
-OPT_OUTPUT_JSON,              /* --output-json=<path> */
+OPT_OUTPUT_JSON,              /* --output-json=<path>, equivalent for --json-file=<path> */
+OPT_JSON_FILE,                /* --json-file=<path> */
 
 /* Help & Version                                            */
 OPT_HELP,                     /* -h  --help                  */
@@ -1019,6 +1022,7 @@ OPT_FORMAT_SUPPRESS_OFFSETS },
 
 /* Output formatted file */
 {"output-json",           dwrequired_argument, 0, OPT_OUTPUT_JSON },
+{"json-file",             dwrequired_argument, 0, OPT_JSON_FILE },
 
 /* Help & Version. */
 {"help",          dwno_argument, 0, OPT_HELP         },
@@ -2492,14 +2496,26 @@ static void arg_x_invalid(void)
     arg_usage_error = TRUE;
 }
 
-/* '--output-json=<path>' option. */
+/* '--output-json=<path>' option, equivalent for '--json-file=<path>' option. */
 static void arg_output_json(void)
 {
     const char *ctx = "--output-json=";
     const char *path = do_uri_translation(dwoptarg,ctx);
     if (strlen(path) > 0) {
         do_all();
-        glflags.output_json = path;
+        glflags.json_file = path;
+    } else {
+        arg_usage_error = TRUE;
+    }
+}
+/* '--json-file=<path>' option. */
+static void arg_json_file(void)
+{
+    const char *ctx = "--json-file=";
+    const char *path = do_uri_translation(dwoptarg,ctx);
+    if (strlen(path) > 0) {
+        do_all();
+        glflags.json_file = path;
     } else {
         arg_usage_error = TRUE;
     }
@@ -2734,6 +2750,7 @@ set_command_options(int argc, char *argv[])
 
         /* Output formatted file */
         case OPT_OUTPUT_JSON: arg_output_json(); break;
+        case OPT_JSON_FILE: arg_json_file(); break;
 
         /* Help & Version. */
         case OPT_HELP:          arg_help();          break;
