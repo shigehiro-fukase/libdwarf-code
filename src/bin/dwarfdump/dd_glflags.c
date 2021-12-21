@@ -339,7 +339,7 @@ init_global_flags(void)
     glflags.check_error = 0;
 
     /* Output formatted file */
-    glflags.output_json = 0;
+    glflags.json_file = 0;
     glflags.json_root_value = 0;
 }
 
