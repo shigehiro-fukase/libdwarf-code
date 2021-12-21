@@ -343,6 +343,8 @@ init_global_flags(void)
     /* Output JSON file */
     glflags.json_file = 0;
     glflags.json_root_value = 0;
+    glflags.json_restrict_section_num = 0;
+    glflags.json_restrict_section_list = 0;
     glflags.json_restrict_unit_num = 0;
     glflags.json_restrict_unit_list = 0;
     glflags.json_restrict_dir_num = 0;
