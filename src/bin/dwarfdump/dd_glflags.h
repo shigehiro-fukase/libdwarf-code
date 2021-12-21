@@ -392,9 +392,11 @@ struct glflags_s {
     /*  Check errors. */
     int check_error;
 
-    /* Output formatted file */
+    /* Output JSON file */
     const char *json_file;
     void * json_root_value; /* 'parson' JSON parser library `JSON_Value*` */
+    int json_restrict_unit_num;
+    const char **json_restrict_unit_list;
 };
 
 extern struct glflags_s glflags;
