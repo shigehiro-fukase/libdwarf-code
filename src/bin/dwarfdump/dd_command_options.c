@@ -412,6 +412,7 @@ static void arg_search_print_tree(void);
 
 static void arg_output_json(void);
 static void arg_json_file(void);
+static void arg_json_restrict_unit(void);
 
 static void arg_help(void);
 static void arg_trace(void);
@@ -675,6 +676,8 @@ static const char *usage_long_text[] = {
 "-------------------------------------------------------------------",
 "--output-json=<path>         Equivalent for '--json-file=<path>'",
 "--json-file=<path>           Name the output JSON file",
+"--json-restrict-unit=<text>",
+"                             Restrict compile unit name(s) (comma saparated)",
 "-------------------------------------------------------------------",
 "Help & Version",
 "-------------------------------------------------------------------",
@@ -821,6 +824,7 @@ OPT_SEARCH_REGEX_COUNT,
 /* Output formatted file */
 OPT_OUTPUT_JSON,              /* --output-json=<path>, equivalent for --json-file=<path> */
 OPT_JSON_FILE,                /* --json-file=<path> */
+OPT_JSON_RESTRICT_UNIT,       /* --json-restrict-unit=<text> */
 
 /* Help & Version                                            */
 OPT_HELP,                     /* -h  --help                  */
@@ -983,6 +987,7 @@ OPT_FORMAT_SUPPRESS_OFFSETS },
 /* Output formatted file */
 {"output-json",           dwrequired_argument, 0, OPT_OUTPUT_JSON },
 {"json-file",             dwrequired_argument, 0, OPT_JSON_FILE },
+{"json-restrict-unit",    dwrequired_argument, 0, OPT_JSON_RESTRICT_UNIT },
 
 /* Help & Version. */
 {"help",          dwno_argument, 0, OPT_HELP         },
@@ -2462,6 +2467,79 @@ static void arg_json_file(void)
         arg_usage_error = TRUE;
     }
 }
+#include <ctype.h>
+static int setarg(int * cp, char **vp[], char * s) {
+    int srtc = (cp) ? *cp : 0;
+    char ** srtv = (vp) ? *vp : NULL;
+    srtv = (char**)realloc(srtv, sizeof(char*) * (srtc+1));
+    if (srtv) {
+        srtv[srtc] = s;
+        if (cp) *cp = srtc + 1;
+        if (vp) *vp = srtv;
+        return 0;
+    }
+    return -1;
+}
+static int split_csv(const char *str, int * cp, char **vp[]) {
+    int srtc = 0;
+    char ** srtv = NULL;
+    char* p = NULL;
+
+    if (!str || !cp || !vp) return -1;
+    p = strdup(str);
+    if (!p) return -1;
+    for (;;) {
+        /* skip space, comma */
+        for (; p && *p; p++) {
+            if (!isspace(*p) && (*p != ',')) break;
+            *p = '\0';
+        }
+        if (!p || !*p) break;
+        if (*p == '"') {
+            p++;
+            if (!p || !*p) break;
+            if (setarg(&srtc, &srtv, p) < 0) goto L_ERROR;
+            /* seek to next double-quote */
+            for (; p && *p; p++) if (*p == '"') break;
+        } else {
+            if (setarg(&srtc, &srtv, p) < 0) goto L_ERROR;
+            /* skip graphic characters, seek to next comma */
+            for (; p && *p; p++) if (!isgraph(*p) || (*p == ',')) break;
+        }
+        if (!p || !*p) break;
+        *p++ = '\0';
+    }
+    if (setarg(&srtc, &srtv, (char*)NULL) < 0) goto L_ERROR;
+    *cp = srtc-1;
+    *vp = srtv;
+    return 0;
+L_ERROR:
+    if (p) free(p);
+    if (srtv) {
+        int i;
+        for (i=0; i<srtc; i++) free(srtv[i]);
+        free(srtv);
+    }
+    return -1;
+}
+/* '--json-restrict-unit=<text>' option. */
+static void arg_json_restrict_unit(void)
+{
+    const char *ctx = "--json-restrict-unit=";
+    const char *path = do_uri_translation(dwoptarg,ctx);
+    if (strlen(path) > 0) {
+        int srtc = 0;
+        char ** srtv = NULL;
+        if (split_csv(path, &srtc, &srtv) < 0) {
+            arg_usage_error = TRUE;
+        } else {
+            glflags.json_restrict_unit_num = srtc;
+            glflags.json_restrict_unit_list = srtv;
+        }
+    } else {
+        arg_usage_error = TRUE;
+    }
+}
 
 /*  Process the command line arguments and set the
     appropriate options. All
@@ -2669,6 +2747,7 @@ set_command_options(int argc, char *argv[])
         /* Output formatted file */
         case OPT_OUTPUT_JSON: arg_output_json(); break;
         case OPT_JSON_FILE: arg_json_file(); break;
+        case OPT_JSON_RESTRICT_UNIT: arg_json_restrict_unit(); break;
 
         /* Help & Version. */
         case OPT_HELP:          arg_help();          break;

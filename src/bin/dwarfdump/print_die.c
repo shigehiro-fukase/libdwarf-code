@@ -1459,7 +1459,7 @@ print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
                         dwarf_dealloc_die(cu_die2);
                         return pres;
                     }
-                    if (glflags.json_file) {
+                    if (glflags.json_file && json_sec_val) {
                         json_add_section(json_sec_val);
                     }
                 }
