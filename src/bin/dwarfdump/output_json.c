@@ -64,6 +64,15 @@ void json_term(void *rv) {
         fclose(json_wfp);
     }
 }
+static int get_sec_name(JSON_Value *json_sec_val, const char ** secnamep) {
+    JSON_Object *json_sec_obj;
+    const char * secname = NULL;
+
+    if ((json_sec_obj = json_value_get_object(json_sec_val)) == NULL) return -1;
+    if ((secname = json_object_get_string(json_sec_obj, JSON_NODE_SECNAME)) == NULL) return -1;
+    if (secnamep) *secnamep = secname;
+    return 0;
+}
 /* get 'DW_TAG_compie_unit:DW_AT_name' and 'DW_TAG_compie_unit:DW_AT_comp_dir' */
 static int get_comp_info(JSON_Value *json_sec_val, const char ** cunitp, const char ** cdirp) {
     JSON_Object *json_sec_obj;
@@ -108,6 +117,19 @@ static const char* basename(const char* path) {
     }
     return path;
 }
+static int chkopt_section_name(const char * secname) {
+    if (secname && (glflags.json_restrict_section_num > 0)) {
+        int i;
+		for (i=0; i<glflags.json_restrict_section_num; i++) {
+            const char* rsecname = glflags.json_restrict_section_list[i];
+            if (strcmp(secname, rsecname) == 0) {
+                return 0;
+            }
+        }
+        return -1;
+    }
+    return 0;
+}
 static int chkopt_compile_unit(const char * cunit) {
     if (cunit && (glflags.json_restrict_unit_num > 0)) {
 		const char * cunitbase = basename(cunit);
@@ -137,12 +159,18 @@ static int chkopt_compile_dir(const char * cdir) {
     return 0;
 }
 static int chkopt_section(JSON_Value *json_sec_val) {
+    const char * secname = NULL;
     const char * cunit = NULL;
     const char * cdir = NULL;
-    int chkunit, chkdir;
+    int chksecname, chkunit, chkdir;
+
+    if (get_sec_name(json_sec_val, &secname) < 0) return 0;
+    if ((chksecname = chkopt_section_name(secname)) != 0) return chksecname;
+
     if (get_comp_info(json_sec_val, &cunit, &cdir) < 0) return 0;
     chkunit = chkopt_compile_unit(cunit);
     chkdir = chkopt_compile_dir(cdir);
+
     return chkunit + chkdir;
 }
 void json_add_section(JSON_Value *json_sec_val) {
