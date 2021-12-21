@@ -123,13 +123,27 @@ static int chkopt_compile_unit(const char * cunit) {
     }
     return 0;
 }
+static int chkopt_compile_dir(const char * cdir) {
+    if (cdir && (glflags.json_restrict_dir_num > 0)) {
+        int i;
+		for (i=0; i<glflags.json_restrict_dir_num; i++) {
+            const char* udir = glflags.json_restrict_dir_list[i];
+            if (strcmp(cdir, udir) == 0) {
+                return 0;
+            }
+        }
+        return -1;
+    }
+    return 0;
+}
 static int chkopt_section(JSON_Value *json_sec_val) {
     const char * cunit = NULL;
     const char * cdir = NULL;
-    int chkunit;
+    int chkunit, chkdir;
     if (get_comp_info(json_sec_val, &cunit, &cdir) < 0) return 0;
     chkunit = chkopt_compile_unit(cunit);
-    return chkunit;
+    chkdir = chkopt_compile_dir(cdir);
+    return chkunit + chkdir;
 }
 void json_add_section(JSON_Value *json_sec_val) {
     if (chkopt_section(json_sec_val) == 0) {
