@@ -169,7 +169,8 @@ process_line_table(Dwarf_Debug dbg,
     Dwarf_Signed linecount,
     Dwarf_Bool is_logicals_table,
     Dwarf_Bool is_actuals_table,
-    Dwarf_Error *lt_err)
+    Dwarf_Error *lt_err,
+    JSON_Object *json_sec_obj)
 {
     char *padding = 0;
     Dwarf_Signed i = 0;
@@ -211,11 +212,37 @@ process_line_table(Dwarf_Debug dbg,
                 padding);
             printf("%sCC=val context, SB=val subprogram\n",
                 padding);
+            if (glflags.json_file) {
+                JSON_Value *val = json_value_init_array();
+                JSON_Array *arr = json_value_get_array(val);
+                json_object_dotset_string(json_sec_obj,
+                        JSON_NODE_LINE_TABLE "." JSON_NODE_LINE_TABLE_NAME, "Logicals Table");
+                json_array_clear(arr);
+                json_array_append_string(arr, "NS new statement");
+                json_array_append_string(arr, "PE prologue end");
+                json_array_append_string(arr, "EB epilogue begin");
+                json_array_append_string(arr, "DI=val discriminator value");
+                json_array_append_string(arr, "CC=val context");
+                json_array_append_string(arr, "SB=val subprogram");
+                json_object_dotset_value(json_sec_obj,
+                        JSON_NODE_LINE_TABLE "." JSON_NODE_LINE_TABLE_LEGEND, val);
+            }
         } else if (is_actuals_table) {
             printf("Actuals Table:\n");
             printf("%sBB new basic block, ET end of text sequence\n"
                 "%sIS=val ISA number\n",padding,padding);
-
+            if (glflags.json_file) {
+                JSON_Value *val = json_value_init_array();
+                JSON_Array *arr = json_value_get_array(val);
+                json_object_dotset_string(json_sec_obj,
+                        JSON_NODE_LINE_TABLE "." JSON_NODE_LINE_TABLE_NAME, "Actuals Table");
+                json_array_clear(arr);
+                json_array_append_string(arr, "BB new basic block");
+                json_array_append_string(arr, "ET end of text sequence");
+                json_array_append_string(arr, "IS=val ISA number");
+                json_object_dotset_value(json_sec_obj,
+                        JSON_NODE_LINE_TABLE "." JSON_NODE_LINE_TABLE_LEGEND, val);
+            }
         } else {
             /* Standard DWARF line table. */
             printf("%sNS new statement, BB new basic block, "
@@ -224,6 +251,21 @@ process_line_table(Dwarf_Debug dbg,
             printf("%sIS=val ISA number, "
                 "DI=val discriminator value\n",
                 padding);
+            if (glflags.json_file) {
+                JSON_Value *val = json_value_init_array();
+                JSON_Array *arr = json_value_get_array(val);
+                json_object_dotset_string(json_sec_obj,
+                        JSON_NODE_LINE_TABLE "." JSON_NODE_LINE_TABLE_NAME, "Standard DWARF line table");
+                json_array_clear(arr);
+                json_array_append_string(arr, "NS new statement");
+                json_array_append_string(arr, "BB new basic block");
+                json_array_append_string(arr, "ET end of text sequence");
+                json_array_append_string(arr, "PE prologue end, EB epilogue begin");
+                json_array_append_string(arr, "IS=val ISA number");
+                json_array_append_string(arr, "DI=val discriminator value");
+                json_object_dotset_value(json_sec_obj,
+                        JSON_NODE_LINE_TABLE "." JSON_NODE_LINE_TABLE_LEGEND, val);
+            }
         }
         if (is_logicals_table || is_actuals_table) {
             printf("[ row]  ");
@@ -1122,7 +1164,7 @@ print_line_numbers_this_cu(Dwarf_Debug dbg, Dwarf_Die cu_die,
 
                 ltres = process_line_table(dbg,sec_name,
                     linebuf, linecount,
-                    is_logicals,is_actuals,err);
+                    is_logicals,is_actuals,err,json_sec_obj);
                 if (ltres == DW_DLV_ERROR) {
                     /* what if NO_ENTRY? */
                     dwarf_srclines_dealloc_b(line_context);
@@ -1134,7 +1176,7 @@ print_line_numbers_this_cu(Dwarf_Debug dbg, Dwarf_Die cu_die,
 
                 ltres = process_line_table(dbg,sec_name,
                     linebuf, linecount,
-                    is_logicals, is_actuals,err);
+                    is_logicals, is_actuals,err,json_sec_obj);
                 if (ltres != DW_DLV_OK) {
                     dwarf_srclines_dealloc_b(line_context);
                     return ltres;
@@ -1142,7 +1184,7 @@ print_line_numbers_this_cu(Dwarf_Debug dbg, Dwarf_Die cu_die,
                 ltres = process_line_table(dbg,sec_name,
                     linebuf_actuals,
                     linecount_actuals,
-                    !is_logicals, !is_actuals,err);
+                    !is_logicals, !is_actuals,err,json_sec_obj);
                 if (ltres != DW_DLV_OK) {
                     dwarf_srclines_dealloc_b(line_context);
                     return ltres;
