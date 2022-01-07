@@ -45,7 +45,10 @@ void json_save(const char * path, void *rv);
 #define JSON_NODE_FILENAME                          "Filename"
 #define JSON_NODE_SECTION                           "Section"
 #define JSON_NODE_SECNAME                           "Section_Name"
+
+/* .debug_info */
 #define JSON_NODE_COMPILE_UNIT                      "Compile_Unit"
+#define JSON_NODE_INDEX                             "Index"
 #define JSON_NODE_DIE                               "DIE"
 #define JSON_NODE_DIE_INDENT_LEVEL                  "Indent_Level"
 #define JSON_NODE_DIE_GLOBAL_OFFSET                 "Global_Offset"
@@ -67,6 +70,10 @@ void json_save(const char * path, void *rv);
 #define JSON_NODE_DIE_ATTR_OP_NAME                  "Name"
 #define JSON_NODE_DIE_ATTR_OP_VALUE                 "Value"
 #define JSON_NODE_DIE_ATTR_OP_VALUE_NUMBER          "Value_Number"
+
+/* .debug_line */
+#define JSON_NODE_LINE_FROM                         "From"
+#define JSON_NODE_LINE_STYLE                        "Style"
 
 #ifdef __cplusplus
 }
