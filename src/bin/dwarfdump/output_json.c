@@ -189,14 +189,12 @@ JSON_Status json_object_set_empty_array(JSON_Object *object, const char *name) {
 }
 char * json_get_string(void *rv) {
     JSON_Value *root_value;
-    JSON_Object *root_object;
     char *serialized_string = NULL;
 
     if (!rv) {
         rv = glflags.json_root_value;
     }
     root_value = (JSON_Value *)rv;
-    root_object = json_value_get_object(root_value);
     serialized_string = json_serialize_to_string_pretty(root_value);
     return serialized_string;
 }
