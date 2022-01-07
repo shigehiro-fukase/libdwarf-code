@@ -55,7 +55,8 @@ Portions Copyright 2015-2015 Google, Inc. All Rights Reserved
 #define DW_LINE_VERSION5 5
 
 static void
-print_source_intro(Dwarf_Debug dbg,Dwarf_Die cu_die)
+print_source_intro(Dwarf_Debug dbg,Dwarf_Die cu_die,
+    JSON_Object *json_sec_obj)
 {
     int         ores = 0;
     Dwarf_Off   off = 0;
@@ -75,11 +76,27 @@ print_source_intro(Dwarf_Debug dbg,Dwarf_Die cu_die)
             DW_PR_XZEROS DW_PR_DUx "):\n",
             sec_name,
             (Dwarf_Unsigned) off);
+        if (glflags.json_file) {
+            struct esb_s s;
+            json_object_dotset_string(json_sec_obj,
+                    JSON_NODE_LINE_FROM "." JSON_NODE_SECNAME, sec_name);
+            esb_constructor(&s);
+            esb_append_printf_u(&s, "<0x%" DW_PR_XZEROS DW_PR_DUx ">", (Dwarf_Unsigned)off);
+            json_object_dotset_string(json_sec_obj,
+                    JSON_NODE_LINE_FROM "." JSON_NODE_DIE_OFFSET_ID, esb_get_string(&s));
+            esb_destructor(&s);
+        }
         DROP_ERROR_INSTANCE(dbg,lres,src_err);
     } else {
         DROP_ERROR_INSTANCE(dbg,ores,src_err);
         printf("Source lines (for the CU-DIE at unknown"
             " location):\n");
+        if (glflags.json_file) {
+            json_object_dotset_null(json_sec_obj,
+                    JSON_NODE_LINE_FROM "." JSON_NODE_SECNAME);
+            json_object_dotset_null(json_sec_obj,
+                    JSON_NODE_LINE_FROM "." JSON_NODE_DIE_OFFSET_ID);
+        }
     }
 }
 
@@ -965,7 +982,7 @@ print_line_numbers_this_cu(Dwarf_Debug dbg, Dwarf_Die cu_die,
         int errcount = 0;
         Dwarf_Bool attr_dup = FALSE;
         int lresv = 0;
-        print_source_intro(dbg,cu_die);
+        print_source_intro(dbg,cu_die,json_sec_obj);
         lresv = print_one_die(dbg, cu_die,
             dieprint_cu_goffset,
             /* print_information= */ 1,
@@ -1072,7 +1089,7 @@ print_line_numbers_this_cu(Dwarf_Debug dbg, Dwarf_Die cu_die,
                     return lres;
                 }
             }
-            print_source_intro(dbg,cu_die);
+            print_source_intro(dbg,cu_die,json_sec_obj);
             if (glflags.verbose) {
                 int dres = 0;
                 Dwarf_Bool attr_dup = FALSE;
@@ -1144,7 +1161,7 @@ print_line_numbers_this_cu(Dwarf_Debug dbg, Dwarf_Die cu_die,
             int ores = 0;
             Dwarf_Unsigned off = 0;
 
-            print_source_intro(dbg,cu_die);
+            print_source_intro(dbg,cu_die,json_sec_obj);
             if (glflags.verbose) {
                 int dpres = 0;
                 Dwarf_Bool attr_dup = FALSE;
