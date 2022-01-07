@@ -2067,6 +2067,10 @@ print_secname(Dwarf_Debug dbg,const char *secname,
         get_true_section_name(dbg,secname,
             &truename,TRUE);
         printf("\n%s\n",sanitized(esb_get_string(&truename)));
+        if (glflags.json_file) {
+            json_object_set_string(json_sec_obj, JSON_NODE_SECNAME,
+                    sanitized(esb_get_string(&truename)));
+        }
         esb_destructor(&truename);
     }
 }
