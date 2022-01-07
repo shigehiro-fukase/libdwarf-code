@@ -73,7 +73,9 @@ void json_save(const char * path, void *rv);
 
 /* .debug_line */
 #define JSON_NODE_LINE_FROM                         "From"
-#define JSON_NODE_LINE_STYLE                        "Style"
+#define JSON_NODE_LINE_TABLE                        "Table"
+#define JSON_NODE_LINE_TABLE_NAME                   "Name"
+#define JSON_NODE_LINE_TABLE_LEGEND                 "Legend"
 
 #ifdef __cplusplus
 }
