@@ -685,7 +685,8 @@ print_debug_fission_header(struct Dwarf_Debug_Fission_Per_CU_s *fsd)
 }
 
 static void
-print_cu_hdr_cudie(Dwarf_Unsigned overall_offset,
+print_cu_hdr_cudie(Dwarf_Unsigned cu_index,
+    Dwarf_Unsigned overall_offset,
     Dwarf_Unsigned offset,
     JSON_Object *json_obj)
 {
@@ -702,6 +703,10 @@ print_cu_hdr_cudie(Dwarf_Unsigned overall_offset,
     printf(":\n");
 
     if (glflags.json_file) {
+        if (glflags.json_restrict_unit_num || glflags.json_restrict_dir_num) {
+            json_object_dotset_number(json_obj,
+                    JSON_NODE_COMPILE_UNIT "." JSON_NODE_INDEX, cu_index);
+        }
         json_object_dotset_number(json_obj,
                 JSON_NODE_COMPILE_UNIT ".header_overall_offset",
                 (Dwarf_Unsigned)(overall_offset - offset));
@@ -2692,6 +2697,7 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
 {
     Dwarf_Signed i = 0;
     Dwarf_Off offset = 0;
+    static Dwarf_Off cu_index = 0;
     Dwarf_Off overall_offset = 0;
     const char * tagname = 0;
     Dwarf_Half tag = 0;
@@ -2773,7 +2779,9 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
             die_stack[die_indent_level].already_printed_ = TRUE;
         }
         if (die_indent_level == 0) {
-            print_cu_hdr_cudie(overall_offset, offset, json_sec_obj);
+            if ((overall_offset - offset) == 0) cu_index = 0;
+            print_cu_hdr_cudie(cu_index, overall_offset, offset, json_sec_obj);
+            cu_index++;
         } else if (local_symbols_already_begun == FALSE &&
             die_indent_level == 1 && !glflags.dense) {
 
