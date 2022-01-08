@@ -287,6 +287,14 @@ process_line_table(Dwarf_Debug dbg,
                 " \"filepath\"\n");
         }
     }
+    if (glflags.json_file) {
+        JSON_Value *val = json_value_init_array();
+        JSON_Array *arr = json_value_get_array(val);
+        json_array_clear(arr);
+        json_object_dotset_value(json_sec_obj,
+                JSON_NODE_LINE_TABLE "." JSON_NODE_LINE_INFO, val);
+    }
+
     for (i = 0; i < linecount; i++) {
         Dwarf_Line line = linebuf[i];
         char* lsrc_filename = 0;
@@ -294,6 +302,13 @@ process_line_table(Dwarf_Debug dbg,
         Dwarf_Bool found_line_error = FALSE;
         Dwarf_Bool has_is_addr_set = FALSE;
         char *where = NULL;
+        JSON_Value *json_line_val = NULL;
+        JSON_Object *json_line_obj = NULL;
+
+        if (glflags.json_file) {
+            json_line_val = json_value_init_object();
+            json_line_obj = json_value_get_object(json_line_val);
+        }
 
         if (glflags.gf_check_decl_file && checking_this_compiler()) {
             /* A line record with addr=0 was detected */
@@ -518,6 +533,31 @@ process_line_table(Dwarf_Debug dbg,
                     lineno, column);
             }
         }
+        if (glflags.json_file) {
+            if (is_logicals_table || is_actuals_table) {
+                struct esb_s s;
+                esb_constructor(&s);
+                esb_append_printf(&s, "[%4" DW_PR_DUu "]", i + 1);
+                json_object_set_string(json_line_obj, JSON_NODE_LINE_ROW,
+                        sanitized(esb_get_string(&s)));
+                esb_destructor(&s);
+            }
+            /* Check if print of <pc> address is needed. */
+            if (glflags.gf_line_print_pc) {
+                struct esb_s s;
+                esb_constructor(&s);
+                esb_append_printf(&s, "0x%" DW_PR_XZEROS DW_PR_DUx "", pc);
+                json_object_set_string(json_line_obj, JSON_NODE_LINE_PC,
+                        sanitized(esb_get_string(&s)));
+                esb_destructor(&s);
+            }
+            if (is_actuals_table) {
+                json_object_set_number(json_line_obj, JSON_NODE_LINE_LOGICAL_NO, logicalno);
+            } else {
+                json_object_set_number(json_line_obj, JSON_NODE_LINE_LNE_NO, lineno);
+                json_object_set_number(json_line_obj, JSON_NODE_LINE_COL_NO, column);
+            }
+        }
 
         if (!is_actuals_table) {
             nsres = dwarf_linebeginstatement(line,
@@ -525,6 +565,11 @@ process_line_table(Dwarf_Debug dbg,
             if (nsres == DW_DLV_OK) {
                 if (newstatement && glflags.gf_do_print_dwarf) {
                     printf(" %s","NS");
+                    if (glflags.json_file) {
+                        JSON_Array *arr;
+                        arr = json_object_get_or_empty_array(json_line_obj, JSON_NODE_LINE_ATTR);
+                        json_array_append_string(arr, "NS");
+                    }
                 }
             } else if (nsres == DW_DLV_ERROR) {
                 struct esb_s m;
@@ -550,6 +595,11 @@ process_line_table(Dwarf_Debug dbg,
             if (nsres == DW_DLV_OK) {
                 if (new_basic_block && glflags.gf_do_print_dwarf) {
                     printf(" %s","BB");
+                    if (glflags.json_file) {
+                        JSON_Array *arr;
+                        arr = json_object_get_or_empty_array(json_line_obj, JSON_NODE_LINE_ATTR);
+                        json_array_append_string(arr, "BB");
+                    }
                 }
             } else if (nsres == DW_DLV_ERROR) {
                 struct esb_s m;
@@ -573,6 +623,11 @@ process_line_table(Dwarf_Debug dbg,
                 if (lineendsequence &&
                     glflags.gf_do_print_dwarf) {
                     printf(" %s", "ET");
+                    if (glflags.json_file) {
+                        JSON_Array *arr;
+                        arr = json_object_get_or_empty_array(json_line_obj, JSON_NODE_LINE_ATTR);
+                        json_array_append_string(arr, "ET");
+                    }
                 }
             } else if (nsres == DW_DLV_ERROR) {
                 struct esb_s m;
@@ -618,15 +673,43 @@ process_line_table(Dwarf_Debug dbg,
             }
             if (prologue_end && !is_actuals_table) {
                 printf(" PE");
+                if (glflags.json_file) {
+                    JSON_Array *arr;
+                    arr = json_object_get_or_empty_array(json_line_obj, JSON_NODE_LINE_ATTR);
+                    json_array_append_string(arr, "PE");
+                }
             }
             if (epilogue_begin && !is_actuals_table) {
                 printf(" EB");
+                if (glflags.json_file) {
+                    JSON_Array *arr;
+                    arr = json_object_get_or_empty_array(json_line_obj, JSON_NODE_LINE_ATTR);
+                    json_array_append_string(arr, "EB");
+                }
             }
             if (isa && !is_logicals_table) {
                 printf(" IS=0x%" DW_PR_DUx, isa);
+                if (glflags.json_file) {
+                    JSON_Array *arr;
+                    struct esb_s s;
+                    esb_constructor(&s);
+                    esb_append_printf(&s, "IS=0x%" DW_PR_DUx, isa);
+                    arr = json_object_get_or_empty_array(json_line_obj, JSON_NODE_LINE_ATTR);
+                    json_array_append_string(arr, sanitized(esb_get_string(&s)));
+                    esb_destructor(&s);
+                }
             }
             if (discriminator && !is_actuals_table) {
                 printf(" DI=0x%" DW_PR_DUx, discriminator);
+                if (glflags.json_file) {
+                    JSON_Array *arr;
+                    struct esb_s s;
+                    esb_constructor(&s);
+                    esb_append_printf(&s, "DI=0x%" DW_PR_DUx, discriminator);
+                    arr = json_object_get_or_empty_array(json_line_obj, JSON_NODE_LINE_ATTR);
+                    json_array_append_string(arr, sanitized(esb_get_string(&s)));
+                    esb_destructor(&s);
+                }
             }
             if (is_logicals_table) {
                 call_context = 0;
@@ -650,6 +733,15 @@ process_line_table(Dwarf_Debug dbg,
                 }
                 if (call_context) {
                     printf(" CC=%" DW_PR_DUu, call_context);
+                    if (glflags.json_file) {
+                        JSON_Array *arr;
+                        struct esb_s s;
+                        esb_constructor(&s);
+                        esb_append_printf(&s, "CC=%" DW_PR_DUu, call_context);
+                        arr = json_object_get_or_empty_array(json_line_obj, JSON_NODE_LINE_ATTR);
+                        json_array_append_string(arr, sanitized(esb_get_string(&s)));
+                        esb_destructor(&s);
+                    }
                 }
                 {
                     Dwarf_Unsigned subprogno = 0;
@@ -693,6 +785,15 @@ process_line_table(Dwarf_Debug dbg,
                     /*  We do not print an empty name.
                         Clutters things up. */
                     printf(" SB=\"%s\"", sanitized(subprog_name));
+                    if (glflags.json_file) {
+                        JSON_Array *arr;
+                        struct esb_s s;
+                        esb_constructor(&s);
+                        esb_append_printf(&s, "SB=\"%s\"", sanitized(subprog_name));
+                        arr = json_object_get_or_empty_array(json_line_obj, JSON_NODE_LINE_ATTR);
+                        json_array_append_string(arr, sanitized(esb_get_string(&s)));
+                        esb_destructor(&s);
+                    }
                 }
                 dwarf_dealloc(dbg,subprog_filename, DW_DLA_STRING);
                 subprog_filename = 0;
@@ -719,6 +820,18 @@ process_line_table(Dwarf_Debug dbg,
                 esb_empty_string(&lastsrc);
                 esb_append(&lastsrc,
                     lsrc_filename?lsrc_filename:"");
+                if (glflags.json_file) {
+                    if (!lsrc_filename) {
+                        json_object_set_null(json_line_obj, JSON_NODE_LINE_URI);
+                    } else {
+                        struct esb_s s;
+                        esb_constructor(&s);
+                        translate_to_uri(lsrc_filename, &s);
+                        json_object_set_string(json_line_obj, JSON_NODE_LINE_URI,
+                                sanitized(esb_get_string(&s)));
+                        esb_destructor(&s);
+                    }
+                }
             } else {
                 /*  Do not print name, it is the same
                     as the last name printed. */
@@ -729,6 +842,11 @@ process_line_table(Dwarf_Debug dbg,
         }
         dwarf_dealloc(dbg,lsrc_filename, DW_DLA_STRING);
         lsrc_filename = 0;
+        if (glflags.json_file) {
+            JSON_Array *json_line_arr = json_object_dotget_array(json_sec_obj,
+                    JSON_NODE_LINE_TABLE "." JSON_NODE_LINE_INFO);
+            json_array_append_value(json_line_arr, json_line_val);
+        }
     }
     esb_destructor(&lastsrc);
     return DW_DLV_OK;
