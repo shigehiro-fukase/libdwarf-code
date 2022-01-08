@@ -187,6 +187,14 @@ JSON_Status json_object_set_empty_array(JSON_Object *object, const char *name) {
     json_array_clear(arr);
     return json_object_set_value(object, name, val);
 }
+JSON_Array * json_object_get_or_empty_array(JSON_Object *object, const char *name) {
+    JSON_Array *arr = json_object_get_array(object, name);
+    if (!arr) {
+        json_object_set_empty_array(object, name);
+        arr = json_object_get_array(object, name);
+    }
+    return arr;
+}
 char * json_get_string(void *rv) {
     JSON_Value *root_value;
     char *serialized_string = NULL;
