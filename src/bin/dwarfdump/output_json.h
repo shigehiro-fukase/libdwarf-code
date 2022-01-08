@@ -38,6 +38,8 @@ void json_term(void *rv);
 void json_add_section(JSON_Value *json_sec_val);
 
 JSON_Status json_object_set_empty_array(JSON_Object *object, const char *name);
+JSON_Array * json_object_get_or_empty_array(JSON_Object *object, const char *name);
+#define USE_GET_OR_EMPTY_ARRAY 1
 
 void json_dump(void *rv);
 void json_save(const char * path, void *rv);
@@ -76,6 +78,14 @@ void json_save(const char * path, void *rv);
 #define JSON_NODE_LINE_TABLE                        "Table"
 #define JSON_NODE_LINE_TABLE_NAME                   "Name"
 #define JSON_NODE_LINE_TABLE_LEGEND                 "Legend"
+#define JSON_NODE_LINE_INFO                         "Info"
+#define JSON_NODE_LINE_ROW                          "[row]"
+#define JSON_NODE_LINE_LOGICAL_NO                   "Logical_Number"
+#define JSON_NODE_LINE_PC                           "<pc>"
+#define JSON_NODE_LINE_LNE_NO                       "Line_Number"
+#define JSON_NODE_LINE_COL_NO                       "Column_Number"
+#define JSON_NODE_LINE_ATTR                         "Attr"
+#define JSON_NODE_LINE_URI                          "URI"
 
 #ifdef __cplusplus
 }
