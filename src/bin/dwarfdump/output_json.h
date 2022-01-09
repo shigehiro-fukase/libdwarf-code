@@ -94,7 +94,15 @@ void json_save(const char * path, void *rv);
 #define JSON_NODE_STR_NAME                          "Name"
 
 /* .debug_aranges */
-#define JSON_NODE_ARANGES_INFO                      "Info"
+#define JSON_NODE_ARANGES_INFO                      "CU"
+#define JSON_NODE_ARANGES_RANGE                     "Range"
+#define JSON_NODE_ARANGES_START                     "Start"
+#define JSON_NODE_ARANGES_START_SEG                 "Segment"
+#define JSON_NODE_ARANGES_START_OFF                 "Offset"
+#define JSON_NODE_ARANGES_END                       "End"
+#define JSON_NODE_ARANGES_LENGTH                    "Length"
+#define JSON_NODE_ARANGES_CU_DIE_OFFSET             "DIE_Offset_ID"
+#define JSON_NODE_ARANGES_CU_HDR                    "CU_HDR"
 
 #ifdef __cplusplus
 }
