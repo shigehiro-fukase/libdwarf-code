@@ -218,6 +218,14 @@ _print_aranges(Dwarf_Debug dbg,Dwarf_Error *ga_err,JSON_Object *json_sec_obj)
             Dwarf_Bool is_info = TRUE; /* has to be debug_info
                 as this involves addresses. */
 
+            JSON_Value *json_aranges_val = NULL;
+            JSON_Object *json_aranges_obj = NULL;
+
+            if (glflags.json_file) {
+                json_aranges_val = json_value_init_object();
+                json_aranges_obj = json_value_get_object(json_aranges_val);
+            }
+
             aires = dwarf_get_arange_info_b(arange_buf[i],
                 &segment,
                 &segment_entry_size,
@@ -375,7 +383,7 @@ _print_aranges(Dwarf_Debug dbg,Dwarf_Error *ga_err,JSON_Object *json_sec_obj)
                                 &attr_duplicated,
                                 /* ignore_die_stack= */TRUE,
                                 ga_err,
-                                json_sec_obj);
+                                json_aranges_obj);
                             if (pres == DW_DLV_ERROR) {
                                 dwarf_dealloc(dbg,cu_die,DW_DLA_DIE);
                                 aranges_dealloc_now(dbg,
@@ -429,6 +437,12 @@ _print_aranges(Dwarf_Debug dbg,Dwarf_Error *ga_err,JSON_Object *json_sec_obj)
                     }
                 }/* end start||length test */
             }  /* end aires DW_DLV_OK test */
+
+            if (glflags.json_file) {
+                JSON_Array *arr = json_object_get_or_empty_array(json_sec_obj, JSON_NODE_ARANGES_INFO);
+                json_array_append_value(arr, json_aranges_val);
+            }
+
             dwarf_dealloc(dbg, cu_die, DW_DLA_DIE);
             cu_die = 0;
             /* print associated die too? */
