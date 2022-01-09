@@ -93,6 +93,9 @@ void json_save(const char * path, void *rv);
 #define JSON_NODE_STR_LENGTH                        "Length"
 #define JSON_NODE_STR_NAME                          "Name"
 
+/* .debug_aranges */
+#define JSON_NODE_ARANGES_INFO                      "Info"
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
