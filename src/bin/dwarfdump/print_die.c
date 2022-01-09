@@ -1433,7 +1433,6 @@ print_one_die_section(Dwarf_Debug dbg,Dwarf_Bool is_info,
                         struct esb_s sec_name;
                         json_sec_val = json_value_init_object();
                         json_sec_obj = json_value_get_object(json_sec_val);
-                        json_object_set_empty_array(json_sec_obj, JSON_NODE_DIE);
                         esb_constructor(&sec_name);
                         get_die_secname(dbg,is_info, &sec_name);
                         json_object_set_string(json_sec_obj, JSON_NODE_SECNAME,
@@ -3041,7 +3040,7 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
     *an_attr_matched_io = attribute_matchedpod;
 
     if (glflags.json_file) {
-        JSON_Array *arr = json_object_get_array(json_sec_obj, JSON_NODE_DIE);
+        JSON_Array *arr = json_object_get_or_empty_array(json_sec_obj, JSON_NODE_DIE);
         json_array_append_value(arr, json_die_val);
     }
     return DW_DLV_OK;
