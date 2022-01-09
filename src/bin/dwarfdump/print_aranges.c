@@ -208,6 +208,9 @@ _print_aranges(Dwarf_Debug dbg,Dwarf_Error *ga_err,JSON_Object *json_sec_obj)
     } else if (ares == DW_DLV_NO_ENTRY) {
         return ares;
     } else {
+        JSON_Value *json_cu_val = NULL;
+        JSON_Object *json_cu_obj = NULL;
+
         for (i = 0; i < count; i++) {
             Dwarf_Unsigned segment = 0;
             Dwarf_Unsigned segment_entry_size = 0;
@@ -373,6 +376,10 @@ _print_aranges(Dwarf_Debug dbg,Dwarf_Error *ga_err,JSON_Object *json_sec_obj)
                             int pres = 0;
                             Dwarf_Bool attr_duplicated = FALSE;
 
+                            if (glflags.json_file) {
+                                json_cu_val = json_value_init_object();
+                                json_cu_obj = json_value_get_object(json_cu_val);
+                            }
                             pres = print_one_die(dbg, cu_die,
                                 cu_die_offset,
                                 /* print_information= */
@@ -383,12 +390,17 @@ _print_aranges(Dwarf_Debug dbg,Dwarf_Error *ga_err,JSON_Object *json_sec_obj)
                                 &attr_duplicated,
                                 /* ignore_die_stack= */TRUE,
                                 ga_err,
-                                json_aranges_obj);
+                                json_cu_obj);
                             if (pres == DW_DLV_ERROR) {
                                 dwarf_dealloc(dbg,cu_die,DW_DLA_DIE);
                                 aranges_dealloc_now(dbg,
                                     count,arange_buf);
                                 return pres;
+                            }
+                            if (glflags.json_file) {
+                                JSON_Array *arr = json_object_get_or_empty_array(
+                                        json_sec_obj, JSON_NODE_ARANGES_INFO);
+                                json_array_append_value(arr, json_cu_val);
                             }
                         }
                         /*  Reset the state, so we can traverse
@@ -410,22 +422,83 @@ _print_aranges(Dwarf_Debug dbg,Dwarf_Error *ga_err,JSON_Object *json_sec_obj)
                                 ", ",
                                 segment,
                                 (Dwarf_Unsigned)start);
+                            if (glflags.json_file) {
+                                struct esb_s s;
+                                json_object_set_boolean(json_aranges_obj,
+                                        JSON_NODE_ARANGES_START,
+                                        1);
+                                esb_constructor(&s);
+                                esb_append_printf_u(&s,
+                                        "0x%" DW_PR_XZEROS DW_PR_DUx "",
+                                        segment);
+                                json_object_set_string(json_aranges_obj,
+                                        JSON_NODE_ARANGES_START_SEG,
+                                        esb_get_string(&s));
+                                esb_destructor(&s);
+                                esb_constructor(&s);
+                                esb_append_printf_u(&s,
+                                        "0x%" DW_PR_XZEROS DW_PR_DUx "",
+                                        (Dwarf_Unsigned)start);
+                                json_object_set_string(json_aranges_obj,
+                                        JSON_NODE_ARANGES_START_OFF,
+                                        esb_get_string(&s));
+                                esb_destructor(&s);
+                            }
                         } else {
                             printf("\narange starts at 0x%"
                                 DW_PR_XZEROS DW_PR_DUx ", ",
                                 (Dwarf_Unsigned)start);
+                            if (glflags.json_file) {
+                                struct esb_s s;
+                                json_object_set_boolean(json_aranges_obj,
+                                        JSON_NODE_ARANGES_START,
+                                        1);
+                                esb_constructor(&s);
+                                esb_append_printf_u(&s,
+                                        "0x%" DW_PR_XZEROS DW_PR_DUx "",
+                                        (Dwarf_Unsigned)start);
+                                json_object_set_string(json_aranges_obj,
+                                        JSON_NODE_ARANGES_START_OFF,
+                                        esb_get_string(&s));
+                                esb_destructor(&s);
+                            }
                         }
                         printf("length of 0x%" DW_PR_XZEROS DW_PR_DUx
                             ", cu_die_offset = 0x%"
                             DW_PR_XZEROS DW_PR_DUx,
                             length,
                             (Dwarf_Unsigned)cu_die_offset);
+                            if (glflags.json_file) {
+                                struct esb_s s;
+                                json_object_set_number(json_aranges_obj,
+                                        JSON_NODE_ARANGES_LENGTH,
+                                        length);
+                                esb_constructor(&s);
+                                esb_append_printf_u(&s,
+                                        "<0x%" DW_PR_XZEROS DW_PR_DUx ">",
+                                        (Dwarf_Unsigned)cu_die_offset);
+                                json_object_set_string(json_aranges_obj,
+                                        JSON_NODE_ARANGES_CU_DIE_OFFSET,
+                                        esb_get_string(&s));
+                                esb_destructor(&s);
+                            }
                     }
                     if (glflags.verbose &&
                         glflags.gf_do_print_dwarf) {
                         printf(" cuhdr 0x%" DW_PR_XZEROS DW_PR_DUx
                             "\n",
                             (Dwarf_Unsigned)off);
+                        if (glflags.json_file) {
+                            struct esb_s s;
+                            esb_constructor(&s);
+                            esb_append_printf_u(&s,
+                                    "0x%" DW_PR_XZEROS DW_PR_DUx "",
+                                    (Dwarf_Unsigned)off);
+                            json_object_set_string(json_aranges_obj,
+                                    JSON_NODE_ARANGES_CU_HDR,
+                                    esb_get_string(&s));
+                            esb_destructor(&s);
+                        }
                     }
                 } else {
                     /*  Must be a range end.
@@ -434,12 +507,18 @@ _print_aranges(Dwarf_Debug dbg,Dwarf_Error *ga_err,JSON_Object *json_sec_obj)
                         'arange end' record. */
                     if (glflags.gf_do_print_dwarf) {
                         printf("\narange end\n");
+                        if (glflags.json_file) {
+                            json_object_set_boolean(json_aranges_obj,
+                                    JSON_NODE_ARANGES_END,
+                                    1);
+                        }
                     }
                 }/* end start||length test */
             }  /* end aires DW_DLV_OK test */
 
             if (glflags.json_file) {
-                JSON_Array *arr = json_object_get_or_empty_array(json_sec_obj, JSON_NODE_ARANGES_INFO);
+                JSON_Array *arr = json_object_get_or_empty_array(
+                        json_cu_obj, JSON_NODE_ARANGES_RANGE);
                 json_array_append_value(arr, json_aranges_val);
             }
 
