@@ -85,9 +85,35 @@ print_strings(Dwarf_Debug dbg,Dwarf_Error *err,
             printf("name at offset 0x%" DW_PR_XZEROS DW_PR_DUx
                 ", length %4" DW_PR_DSd " is '%s'\n",
                 (Dwarf_Unsigned)offset, length, sanitized(name));
+            if (glflags.json_file) {
+                struct esb_s s;
+                JSON_Value *json_str_val = json_value_init_object();
+                JSON_Object *json_str_obj = json_value_get_object(json_str_val);
+
+                esb_constructor(&s);
+                esb_append_printf(&s, "0x%" DW_PR_XZEROS DW_PR_DUx "", (Dwarf_Unsigned)offset);
+                json_object_set_string(json_str_obj, JSON_NODE_STR_OFFSET,
+                        sanitized(esb_get_string(&s)));
+                esb_destructor(&s);
+                json_object_set_number(json_str_obj, JSON_NODE_STR_LENGTH, length);
+                json_object_set_string(json_str_obj, JSON_NODE_STR_NAME,
+                        sanitized(name));
+                JSON_Array *arr = json_object_get_or_empty_array(json_sec_obj, JSON_NODE_STR_INFO);
+                json_array_append_value(arr, json_str_val);
+            }
         } else {
             printf("name: length %4" DW_PR_DSd " is '%s'\n",
                 length, sanitized(name));
+            if (glflags.json_file) {
+                JSON_Value *json_str_val = json_value_init_object();
+                JSON_Object *json_str_obj = json_value_get_object(json_str_val);
+
+                json_object_set_number(json_str_obj, JSON_NODE_STR_LENGTH, length);
+                json_object_set_string(json_str_obj, JSON_NODE_STR_NAME,
+                        sanitized(name));
+                JSON_Array *arr = json_object_get_or_empty_array(json_sec_obj, JSON_NODE_STR_INFO);
+                json_array_append_value(arr, json_str_val);
+            }
         }
         offset += length + 1;
     }

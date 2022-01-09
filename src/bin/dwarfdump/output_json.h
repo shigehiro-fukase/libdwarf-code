@@ -87,6 +87,12 @@ void json_save(const char * path, void *rv);
 #define JSON_NODE_LINE_ATTR                         "Attr"
 #define JSON_NODE_LINE_URI                          "URI"
 
+/* .debug_str */
+#define JSON_NODE_STR_INFO                          "Info"
+#define JSON_NODE_STR_OFFSET                        "Offset"
+#define JSON_NODE_STR_LENGTH                        "Length"
+#define JSON_NODE_STR_NAME                          "Name"
+
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
