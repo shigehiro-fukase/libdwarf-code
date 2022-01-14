@@ -2916,8 +2916,10 @@ print_one_die(Dwarf_Debug dbg, Dwarf_Die die,
             esb_append_printf_u(&s, "<0x%" DW_PR_XZEROS DW_PR_DUx ">", (Dwarf_Unsigned)offset);
             json_object_set_number(json_die_obj, JSON_NODE_DIE_INDENT_LEVEL, die_indent_level);
             json_object_set_string(json_die_obj, JSON_NODE_DIE_OFFSET_ID, esb_get_string(&s));
-            json_object_set_number(json_die_obj, JSON_NODE_DIE_GLOBAL_OFFSET, (Dwarf_Unsigned) (overall_offset - offset));
-            json_object_set_number(json_die_obj, JSON_NODE_DIE_OVERALL_OFFSET, (Dwarf_Unsigned)overall_offset);
+            if (glflags.verbose) {
+                json_object_set_number(json_die_obj, JSON_NODE_DIE_GLOBAL_OFFSET, (Dwarf_Unsigned) (overall_offset - offset));
+                json_object_set_number(json_die_obj, JSON_NODE_DIE_OVERALL_OFFSET, (Dwarf_Unsigned)overall_offset);
+            }
             json_object_set_string(json_die_obj, JSON_NODE_DIE_TAG_NAME, tagname);
             json_object_set_empty_array(json_die_obj, JSON_NODE_DIE_ATTR);
             esb_destructor(&s);
