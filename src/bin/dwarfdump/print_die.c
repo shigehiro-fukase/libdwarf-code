@@ -5891,12 +5891,33 @@ print_attribute(Dwarf_Debug dbg, Dwarf_Die die,
         || bTextFound) {
 
         if (glflags.json_file) {
-            char *v = 0;
+            const char *v = 0;
             json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_NAME, atname);
+            v = sanitized(esb_get_string(&valname));
+            if (strcmp(esb_get_string(&atname), "DW_AT_location") == 0) {
+                struct esb_s valstr;
+                size_t i, n = strlen(v);
 
-            v = esb_get_string(&valname);
-            v = sanitized(v);
-            json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_VALUE, v);
+                esb_constructor(&valstr);
+                for (i=0; i<n; i++, v++) {
+                    if (isspace(*v)) {
+                        esb_appendn(&valstr, v, 1);
+                        for (; i<(n-1); i++) {
+                            if (!isspace(*(v+1))) {
+                                break;
+                            }
+                            v++;
+                        }
+                    } else if (isgraph(*v)) {
+                        esb_appendn(&valstr, v, 1);
+                    }
+                }
+                v = sanitized(esb_get_string(&valstr));
+                json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_VALUE, v);
+                esb_destructor(&valstr);
+            } else {
+                json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_VALUE, v);
+            }
 #if defined(CONFIG_OUTPUT_JSON_DIE_ATTR_EXTRA) && (CONFIG_OUTPUT_JSON_DIE_ATTR_EXTRA != 0)
             if (append_extra_string) {
                 v = esb_get_string(&esb_extra);
@@ -8871,13 +8892,12 @@ get_attr_value(Dwarf_Debug dbg, Dwarf_Half tag,
             }
             if (glflags.json_file) {
                 struct esb_s valstr;
-                char *v = 0;
+                const char *v = 0;
 
                 json_object_set_number(json_attr_obj, JSON_NODE_DIE_ATTR_DATA_LENGTH_NUMBER, (double)tempb->bl_len);
                 esb_constructor(&valstr);
                 esb_append_printf_u(&valstr, "0x%04x", tempb->bl_len);
-                v = esb_get_string(&valstr);
-                v = sanitized(v);
+                v = sanitized(esb_get_string(&valstr));
                 json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_DATA_LENGTH, v);
                 esb_destructor(&valstr);
 
@@ -8888,8 +8908,7 @@ get_attr_value(Dwarf_Debug dbg, Dwarf_Half tag,
                             "%02x",
                             *(u + (unsigned char *) tempb->bl_data));
                 }
-                v = esb_get_string(&valstr);
-                v = sanitized(v);
+                v = sanitized(esb_get_string(&valstr));
                 json_object_set_string(json_attr_obj, JSON_NODE_DIE_ATTR_DATA, v);
                 esb_destructor(&valstr);
             }
