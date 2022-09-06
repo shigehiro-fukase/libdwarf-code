@@ -67,7 +67,7 @@ print_version_details(const char * name UNUSEDARG,
 #else
     char *bits = "32";
 #endif /* _WIN64 */
-    printf("%s [%s %s %s Win%s (%s)]\n",
+    printf("%s [%s %s %s Win%s (%s) (output-json r9)]\n",
         sanitized(name),__DATE__,__TIME__,acType,bits,
         PACKAGE_VERSION);
 #else  /* !_WIN32 */
