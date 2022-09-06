@@ -28,6 +28,12 @@ Portions Copyright 2012 SN Systems Ltd. All rights reserved.
 */
 
 #include <config.h>
+#ifdef _WIN32
+#include <string.h>
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h> /* NULL */
+#endif /* HAVE_SYS_TYPES_H */
+#endif /* _WIN32 */
 
 #include <stddef.h> /* NULL size_t */
 #include <string.h> /* strlen() */

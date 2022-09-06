@@ -33,10 +33,7 @@
 #include <string.h> /* memcpy() */
 
 #ifdef _WIN32
-#ifdef HAVE_STDAFX_H
-#include "stdafx.h"
-#endif /* HAVE_STDAFX_H */
-#include <io.h> /* lseek() off_t ssize_t */
+#include <io.h> /* lseek() */
 #elif defined HAVE_UNISTD_H
 #include <unistd.h> /* lseek() off_t */
 #endif /* _WIN32 */
