@@ -55,7 +55,7 @@ print_version_details(const char * name)
 {
     if (glflags.gf_show_args_flag) {
         const char *pv = dwarf_package_version();
-        printf("%s [%s %s (libdwarf %s dwarfdump %s)]\n",
+        printf("%s [%s %s (libdwarf %s dwarfdump %s + output-json r23)]\n",
             sanitized(name),__DATE__,__TIME__,pv,PACKAGE_VERSION);
     }
 }
