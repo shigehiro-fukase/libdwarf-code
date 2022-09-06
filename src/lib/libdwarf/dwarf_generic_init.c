@@ -101,6 +101,10 @@ dwarf_init_path_dl(path true_path and globals, dbg1
 #define O_CLOEXEC 0
 #endif /* O_CLOEXEC */
 
+#ifndef O_RDONLY
+#define O_RDONLY 0
+#endif
+
 /*  This is the initialization set intended to
     handle multiple object formats.
     Created September 2018

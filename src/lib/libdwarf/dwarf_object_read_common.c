@@ -39,6 +39,8 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "stdafx.h"
 #endif /* HAVE_STDAFX_H */
 #include <io.h> /* off_t */
+#include <BaseTsd.h>
+typedef SSIZE_T ssize_t; /* Windows does not have POSIX ssize_t */
 #elif defined HAVE_UNISTD_H
 #include <unistd.h> /* off_t */
 #endif /* _WIN32*/
