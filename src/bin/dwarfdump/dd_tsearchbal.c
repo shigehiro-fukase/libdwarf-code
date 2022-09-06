@@ -55,6 +55,8 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #ifdef _WIN32
 #define _CRT_SECURE_NO_WARNINGS
+#include <stdlib.h>
+#include <memory.h>
 #endif /* _WIN32 */
 
 #include <config.h>

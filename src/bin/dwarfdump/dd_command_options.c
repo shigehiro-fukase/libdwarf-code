@@ -29,6 +29,10 @@
 
 #include <stdlib.h> /* atoi() calloc() exit() free()
     malloc() strtol() */
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#include <memory.h>
+#endif /* _WIN32 */
 #include <string.h> /* strcmp() strdup() strlen() */
 
 /* Windows specific header files */
