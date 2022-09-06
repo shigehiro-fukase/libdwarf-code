@@ -33,6 +33,12 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef  DWARF_OBJECT_READ_COMMON_H
 #define  DWARF_OBJECT_READ_COMMON_H
 
+#ifdef _WIN32
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h> /* off_t */
+#endif /* HAVE_SYS_TYPES_H */
+#endif /* _WIN32 */
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
