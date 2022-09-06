@@ -5,6 +5,11 @@ project(libdwarf C CXX)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 include_directories( ${CMAKE_BINARY_DIR} )
 
+if (MSVC)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /DLIBDWARF_BUILD")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DLIBDWARF_BUILD")
+endif()
+
 # used to compile on MSVC upto 2013 where snprintf is not available
 macro(msvc_posix target)
     if(MSVC AND ("${MSVC_VERSION}" LESS 1900))
