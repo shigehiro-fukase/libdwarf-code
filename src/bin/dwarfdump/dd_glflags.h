@@ -31,6 +31,8 @@ Copyright (C) 2017-2020 David Anderson. All Rights Reserved.
     global struct as it has been hard to know how many there
     were or what they were all for. */
 
+#include <libdwarf.h>
+
 struct esb_s;
 struct dwconf_s;
 
