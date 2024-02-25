@@ -1,7 +1,7 @@
 /*
  SPDX-License-Identifier: MIT
  
- Copyright (c) 2021-2023 Shigehiro Fukase
+ Copyright (c) 2021-2024 Shigehiro Fukase
 
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include "libdwarf.h"
 #include "dd_globals.h"
 #include "parson.h"
