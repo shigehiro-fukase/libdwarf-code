@@ -6265,7 +6265,8 @@ print_expression_inner_block(Dwarf_Debug dbg,
     int             die_indent_level,
     Dwarf_Block    *block,
     struct esb_s   *string_out,
-    Dwarf_Error    *error)
+    Dwarf_Error    *error,
+    JSON_Object *json_attr_obj)
 {
     int res = 0;
     Dwarf_Loc_Head_c header = 0;
@@ -6336,7 +6337,8 @@ print_expression_inner_block(Dwarf_Debug dbg,
         die_indent_level,
         locentry,
         locexpr_op_count,
-        string_out,error);
+        string_out,error,
+        json_attr_obj);
     dwarf_dealloc_loc_head_c(header);
     return res;
 }
@@ -6586,7 +6588,7 @@ _dwarf_print_one_expr_op(Dwarf_Debug dbg,
                         inres = print_expression_inner_block(dbg,die,
                             die_indent_level+1,&inr,
                             string_out,
-                            err);
+                            err, json_attr_obj);
                         if (inres == DW_DLV_ERROR) {
                             DROP_ERROR_INSTANCE(dbg,inres,*err);
                         }
@@ -6669,7 +6671,7 @@ _dwarf_print_one_expr_op(Dwarf_Debug dbg,
                     inres = print_expression_inner_block(dbg,die,
                         die_indent_level+1,&inr,
                         string_out,
-                        err);
+                        err, json_attr_obj);
                     if (inres == DW_DLV_ERROR) {
                         DROP_ERROR_INSTANCE(dbg,inres,*err);
                     }
